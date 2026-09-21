@@ -1,10 +1,7 @@
 package org.edwin.bekal.domain.application.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.edwin.bekal.domain.application.dto.CreateLoanApplicationRequest;
-import org.edwin.bekal.domain.application.dto.LoanApplicationResponse;
-import org.edwin.bekal.domain.application.dto.LoanReviewDetail;
-import org.edwin.bekal.domain.application.dto.RoleMenuAccessResponse;
+import org.edwin.bekal.domain.application.dto.*;
 import org.edwin.bekal.domain.application.service.LoanApplicationService;
 import org.edwin.bekal.domain.application.service.LoanDisbursementService;
 import org.edwin.bekal.domain.application.service.impl.LoanReviewDetailServiceImpl;
@@ -23,12 +20,14 @@ public class LoanApplicationController {
     private final LoanDisbursementService loanDisbursementService;
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<Page<LoanApplicationResponse>> getLoanApplicationByCustomer(
+    public ResponseEntity<CacheablePage<LoanApplicationResponse>> getLoanApplicationByCustomer(
             @PathVariable UUID customerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size){
+            @RequestParam(defaultValue = "10") int size) {
 
-        return ResponseEntity.ok(loanApplicationService.getLoanApplicationByCustomer(customerId, page, size));
+        return ResponseEntity.ok(
+                loanApplicationService.getLoanApplicationByCustomer(customerId, page, size)
+        );
     }
 
     @PostMapping

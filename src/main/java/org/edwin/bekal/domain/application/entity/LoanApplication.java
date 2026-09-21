@@ -64,7 +64,7 @@ public class LoanApplication extends BaseAuditEntity {
 
     @Size(max = 20)
     @NotNull
-    @ColumnDefault("'submitted'")
+    @ColumnDefault("'in_review'")
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 

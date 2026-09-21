@@ -8,6 +8,8 @@ import org.edwin.bekal.domain.master.entity.Branch;
 import org.edwin.bekal.domain.master.repository.BranchRepository;
 import org.edwin.bekal.domain.master.service.BranchService;
 import org.edwin.bekal.enums.BranchStatus;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +24,8 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     @Transactional
-    public BranchResponse updateBranch(UUID id, UpdateBranchRequest request){
+    @CacheEvict(value = "branches", allEntries = true) // ✅ evict on update
+    public BranchResponse updateBranch(UUID id, UpdateBranchRequest request) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Branch not found with ID" + id));
 
@@ -38,23 +41,23 @@ public class BranchServiceImpl implements BranchService {
         branch.setBranchAddress(request.getBranchAddress());
 
         Branch updated = branchRepository.saveAndFlush(branch);
-
         return mapToResponse(updated);
     }
 
     @Override
     @Transactional
-    public void deleteBranch(UUID id){
+    @CacheEvict(value = "branches", allEntries = true) // ✅ evict on delete
+    public void deleteBranch(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Branch not found with ID" + id));
-
         branch.setBranchStatus(BranchStatus.INACTIVE);
     }
 
     @Override
     @Transactional
-    public BranchResponse createBranch(CreateBranchRequest request){
-        if(branchRepository.existsByBranchCode(request.getBranchCode())){
+    @CacheEvict(value = "branches", allEntries = true) // ✅ evict on create
+    public BranchResponse createBranch(CreateBranchRequest request) {
+        if (branchRepository.existsByBranchCode(request.getBranchCode())) {
             throw new IllegalArgumentException("Branch code already exists!");
         }
         Branch branch = new Branch();
@@ -63,19 +66,21 @@ public class BranchServiceImpl implements BranchService {
         branch.setBranchAddress(request.getBranchAddress());
         branch.setBranchCity(request.getBranchCity());
         branch.setBranchStatus(BranchStatus.ACTIVE);
+
         Branch saved = branchRepository.saveAndFlush(branch);
         return mapToResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<BranchResponse> getAllBranches(){
+    @Cacheable(value = "branches", key = "'all'") // ✅ cache all branches
+    public List<BranchResponse> getAllBranches() {
         return branchRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-    public BranchResponse mapToResponse(Branch branch){
+    public BranchResponse mapToResponse(Branch branch) {
         return BranchResponse.builder()
                 .id(branch.getId())
                 .branchCode(branch.getBranchCode())

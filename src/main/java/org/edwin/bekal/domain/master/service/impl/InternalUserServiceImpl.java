@@ -1,6 +1,7 @@
 package org.edwin.bekal.domain.master.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.*;
 import org.edwin.bekal.domain.master.entity.Branch;
 import org.edwin.bekal.domain.master.entity.InternalUser;
@@ -9,6 +10,9 @@ import org.edwin.bekal.domain.master.repository.BranchRepository;
 import org.edwin.bekal.domain.master.repository.InternalUserRepository;
 import org.edwin.bekal.domain.master.repository.RoleRepository;
 import org.edwin.bekal.domain.master.service.InternalUserService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +20,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Year;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,11 +37,10 @@ public class InternalUserServiceImpl implements InternalUserService {
 
     @Override
     public String generateEmployeeCode() {
-        String currentYear = String.valueOf(Year.now().getValue());
+        String currentYear = String.valueOf(java.time.Year.now().getValue());
         Optional<String> lastCodeOpt = internalUserRepository.findLastEmployeeCodeByYear(currentYear);
 
         int nextNumber = 1;
-
         if (lastCodeOpt.isPresent()) {
             String lastCode = lastCodeOpt.get();
             String lastSequence = lastCode.substring(lastCode.lastIndexOf('-') + 1);
@@ -52,8 +52,11 @@ public class InternalUserServiceImpl implements InternalUserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "internalUsers", allEntries = true),
+            @CacheEvict(value = "internalUsersPage", allEntries = true)
+    })
     public InternalUserResponse createInternalUser(CreateInternalUserRequest request) {
-        // 1. Validasi Keunikan Email & Employee Code
         if (internalUserRepository.existsByInternalUserEmail(request.getInternalUserEmail())) {
             throw new IllegalArgumentException("Email already exists!");
         }
@@ -61,14 +64,11 @@ public class InternalUserServiceImpl implements InternalUserService {
             throw new IllegalArgumentException("Employee code already exists!");
         }
 
-        // 2. Fetch Relasi Branch & Role
         Branch branch = branchRepository.findById(request.getBranchId())
                 .orElseThrow(() -> new IllegalArgumentException("Branch not found with ID: " + request.getBranchId()));
-
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new IllegalArgumentException("Role not found with ID: " + request.getRoleId()));
 
-        // 3. Mapping Request ke Entity
         InternalUser user = new InternalUser();
         user.setBranch(branch);
         user.setRole(role);
@@ -85,11 +85,14 @@ public class InternalUserServiceImpl implements InternalUserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "internalUsers", allEntries = true),
+            @CacheEvict(value = "internalUsersPage", allEntries = true)
+    })
     public InternalUserResponse updateInternalUser(UUID id, UpdateInternalUserRequest request) {
         InternalUser user = internalUserRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Internal User not found with ID: " + id));
 
-        // Validasi Email jika berubah
         if (!user.getInternalUserEmail().equalsIgnoreCase(request.getInternalUserEmail())) {
             if (internalUserRepository.existsByInternalUserEmail(request.getInternalUserEmail())) {
                 throw new IllegalArgumentException("Email " + request.getInternalUserEmail() + " already exists!");
@@ -97,7 +100,6 @@ public class InternalUserServiceImpl implements InternalUserService {
             user.setInternalUserEmail(request.getInternalUserEmail());
         }
 
-        // Validasi Employee Code jika berubah
         if (!user.getInternalUserEmployeeCode().equalsIgnoreCase(request.getInternalUserEmployeeCode())) {
             if (internalUserRepository.existsByInternalUserEmployeeCode(request.getInternalUserEmployeeCode())) {
                 throw new IllegalArgumentException("Employee code " + request.getInternalUserEmployeeCode() + " already exists!");
@@ -105,7 +107,6 @@ public class InternalUserServiceImpl implements InternalUserService {
             user.setInternalUserEmployeeCode(request.getInternalUserEmployeeCode());
         }
 
-        // Update Relasi Branch & Role jika berubah
         if (!user.getBranch().getId().equals(request.getBranchId())) {
             Branch branch = branchRepository.findById(request.getBranchId())
                     .orElseThrow(() -> new IllegalArgumentException("Branch not found with ID: " + request.getBranchId()));
@@ -128,11 +129,13 @@ public class InternalUserServiceImpl implements InternalUserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "internalUsers", allEntries = true),
+            @CacheEvict(value = "internalUsersPage", allEntries = true)
+    })
     public void deleteInternalUser(UUID id) {
         InternalUser user = internalUserRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Internal User not found with ID: " + id));
-
-        // Menggunakan fitur Soft Delete dari BaseFullEntity
         user.setInternalUserIsActive(false);
         user.setDeletedAt(Instant.now());
         internalUserRepository.save(user);
@@ -140,36 +143,41 @@ public class InternalUserServiceImpl implements InternalUserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "internalUsers", allEntries = true),
+            @CacheEvict(value = "internalUsersPage", allEntries = true)
+    })
     public void activateInternalUser(UUID id) {
         InternalUser user = internalUserRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Internal User not found with ID: " + id));
-
-        // Mengembalikan status menjadi aktif
         user.setInternalUserIsActive(true);
-        user.setDeletedAt(null); // Clear timestamp soft delete
+        user.setDeletedAt(null);
         internalUserRepository.save(user);
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "internalUsers", key = "'all'")
     public List<InternalUserResponse> getAllInternalUser() {
-        // Ambil data yang belum di-soft-delete (isDeleted = false)
         return internalUserRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-    public Page<InternalUserResponse> getInternalUser(int page, int size, Boolean status) {
+    // ✅ Change return type from Page<InternalUserResponse> to CacheablePage<InternalUserResponse>
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "internalUsersPage",
+            key = "'page_' + #page + '_size_' + #size + '_status_' + #status"
+    )
+    public CacheablePage<InternalUserResponse> getInternalUser(int page, int size, Boolean status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-        Page<InternalUser> userPage;
-        if (status != null) {
-            userPage = internalUserRepository.findByInternalUserIsActive(status, pageable);
-        } else {
-            userPage = internalUserRepository.findAll(pageable);
-        }
+        Page<InternalUser> userPage = status != null
+                ? internalUserRepository.findByInternalUserIsActive(status, pageable)
+                : internalUserRepository.findAll(pageable);
 
-        return userPage.map(this::mapToResponse);
+        return CacheablePage.from(userPage.map(this::mapToResponse)); // ✅
     }
 
     public InternalUserResponse mapToResponse(InternalUser user) {

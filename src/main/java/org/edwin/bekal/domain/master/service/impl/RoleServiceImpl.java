@@ -1,13 +1,14 @@
 package org.edwin.bekal.domain.master.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.*;
-import org.edwin.bekal.domain.master.entity.Branch;
-import org.edwin.bekal.domain.master.entity.InternalUser;
 import org.edwin.bekal.domain.master.entity.Role;
 import org.edwin.bekal.domain.master.repository.RoleRepository;
 import org.edwin.bekal.domain.master.service.RoleService;
-import org.edwin.bekal.enums.BranchStatus;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +27,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public RoleResponse updateRole(UUID id, UpdateRoleRequest request){
+    @Caching(evict = {
+            @CacheEvict(value = "roles", allEntries = true),      // ✅ evict list cache
+            @CacheEvict(value = "rolesPage", allEntries = true)   // ✅ evict paginated cache
+    })
+    public RoleResponse updateRole(UUID id, UpdateRoleRequest request) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found with ID" + id));
 
@@ -41,23 +46,29 @@ public class RoleServiceImpl implements RoleService {
         role.setRoleIsActive(request.getRoleIsActive() == null || request.getRoleIsActive());
 
         Role updated = roleRepository.saveAndFlush(role);
-
         return mapToResponse(updated);
     }
 
     @Override
     @Transactional
-    public void deleteRole(UUID id){
+    @Caching(evict = {
+            @CacheEvict(value = "roles", allEntries = true),
+            @CacheEvict(value = "rolesPage", allEntries = true)
+    })
+    public void deleteRole(UUID id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found with ID" + id));
-
         role.setRoleIsActive(false);
     }
 
     @Override
     @Transactional
-    public RoleResponse createRole(CreateRoleRequest request){
-        if(roleRepository.existsByRoleName(request.getRoleName())){
+    @Caching(evict = {
+            @CacheEvict(value = "roles", allEntries = true),
+            @CacheEvict(value = "rolesPage", allEntries = true)
+    })
+    public RoleResponse createRole(CreateRoleRequest request) {
+        if (roleRepository.existsByRoleName(request.getRoleName())) {
             throw new IllegalArgumentException("Role name already exists!");
         }
         Role role = new Role();
@@ -71,29 +82,30 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoleResponse> getAllRole(){
+    @Cacheable(value = "roles", key = "'all'") // ✅ cache full list
+    public List<RoleResponse> getAllRole() {
         return roleRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     @Override
-    @Transactional
-    public Page<RoleResponse> getRole(int page, int size, Boolean status) {
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "rolesPage",
+            key = "'page_' + #page + '_size_' + #size + '_status_' + #status"
+    )
+    public CacheablePage<RoleResponse> getRole(int page, int size, Boolean status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-        Page<Role> rolePage;
-        if (status != null) {
-            rolePage = roleRepository.findByRoleIsActive(status, pageable);
-        } else {
-            rolePage = roleRepository.findAll(pageable);
-        }
+        Page<Role> rolePage = status != null
+                ? roleRepository.findByRoleIsActive(status, pageable)
+                : roleRepository.findAll(pageable);
 
-        return rolePage.map(this::mapToResponse);
+        return CacheablePage.from(rolePage.map(this::mapToResponse)); // ✅
     }
 
-
-    public RoleResponse mapToResponse(Role role){
+    public RoleResponse mapToResponse(Role role) {
         return RoleResponse.builder()
                 .id(role.getId())
                 .roleName(role.getRoleName())

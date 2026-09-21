@@ -49,6 +49,13 @@ public class LoanDisbursementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
+        if (page < 0) {
+            page = 0;
+        }
+        if (size < 1 || size > 100) {
+            size = 10;
+        }
+
         return ResponseEntity.ok(loanDisbursementService.getApplicationDisbursementHistory(page, size));
     }
 }

@@ -1,12 +1,15 @@
 package org.edwin.bekal.domain.master.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateMenuRequest;
 import org.edwin.bekal.domain.master.dto.MenuResponse;
 import org.edwin.bekal.domain.master.dto.UpdateMenuRequest;
 import org.edwin.bekal.domain.master.entity.Menu;
 import org.edwin.bekal.domain.master.repository.MenuRepository;
 import org.edwin.bekal.domain.master.service.MenuService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +27,8 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     @Transactional
-    public MenuResponse createMenu(CreateMenuRequest request){
+    @CacheEvict(value = "menus", allEntries = true) // ✅ evict on create
+    public MenuResponse createMenu(CreateMenuRequest request) {
         Menu menu = new Menu();
         menu.setMenuName(request.getMenuName());
         menu.setMenuPath(request.getMenuPath());
@@ -42,23 +46,25 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    @Transactional
-    public Page<MenuResponse> getMenu(int page, int size, Boolean status){
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "menus",
+            key = "'page_' + #page + '_size_' + #size + '_status_' + #status"
+    )
+    public CacheablePage<MenuResponse> getMenu(int page, int size, Boolean status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-        Page<Menu> menuPage;
-        if (status != null) {
-            menuPage = menuRepository.findByMenuIsActive(status, pageable);
-        } else {
-            menuPage = menuRepository.findAll(pageable);
-        }
+        Page<Menu> menuPage = status != null
+                ? menuRepository.findByMenuIsActive(status, pageable)
+                : menuRepository.findAll(pageable);
 
-        return menuPage.map(this::mapToResponse);
+        return CacheablePage.from(menuPage.map(this::mapToResponse)); // ✅
     }
 
     @Override
     @Transactional
-    public MenuResponse updateMenu(UUID id, UpdateMenuRequest request){
+    @CacheEvict(value = "menus", allEntries = true) // ✅ evict on update
+    public MenuResponse updateMenu(UUID id, UpdateMenuRequest request) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found with ID" + id));
         menu.setMenuName(request.getMenuName());
@@ -73,23 +79,20 @@ public class MenuServiceImpl implements MenuService {
         }
 
         Menu updated = menuRepository.saveAndFlush(menu);
-
         return mapToResponse(updated);
     }
 
     @Override
     @Transactional
-    public void deleteMenu(UUID id){
+    @CacheEvict(value = "menus", allEntries = true) // ✅ evict on delete
+    public void deleteMenu(UUID id) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found with ID: " + id));
-
-        // Menggunakan fitur Soft Delete dari BaseFullEntity
         menu.setMenuIsActive(false);
-//        menu.set(Instant.now());
         menuRepository.save(menu);
     }
 
-    public MenuResponse mapToResponse(Menu menu){
+    public MenuResponse mapToResponse(Menu menu) {
         return MenuResponse.builder()
                 .id(menu.getId())
                 .menuParent(menu.getMenuParent())

@@ -1,5 +1,6 @@
 package org.edwin.bekal.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.edwin.bekal.config.security.InternalUserDetailsService;
 import org.springframework.context.annotation.Bean;
@@ -68,17 +69,28 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/customers/login", "/api/v1/customers/register").permitAll()
+                        .requestMatchers("/api/v1/customers/login", "/api/v1/customers/register", "/api/v1/customers/check").permitAll()
                         .requestMatchers("/api/v1/internal-user/**", "/api/v1/internal-user").authenticated()
                         .requestMatchers("/api/v1/customers/login").permitAll()
                         .requestMatchers("/api/v1/bank-accounts/**").permitAll()
-                        .requestMatchers("/api/v1/document/**").permitAll()     // <-- Tambahkan ini
-                        .requestMatchers("/api/v1/employment/**").permitAll()  // <-- Tambahkan ini
+                        .requestMatchers("/api/v1/document/**").permitAll()
+                        .requestMatchers("/api/v1/employment/**").permitAll()
                         .requestMatchers("/api/v1/customers/me").hasRole("CUSTOMER")
                         .requestMatchers("/api/v1/me/**").authenticated()
                         .requestMatchers("/api/v1/home/**").authenticated()
+                        .requestMatchers(
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/verify-otp",
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/google"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 );
 
@@ -91,7 +103,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

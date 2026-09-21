@@ -11,6 +11,7 @@ import java.util.UUID;
 public record LoanDisbursementHistoryResponse (
         UUID applicationId,
         String applicationNumber,
+        BigDecimal amountRequested,
         String customerName,
         String currentStatus,
         Instant disbursedAt){}

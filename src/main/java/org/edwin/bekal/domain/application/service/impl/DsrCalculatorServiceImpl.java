@@ -15,7 +15,7 @@ import java.util.UUID;
 public class DsrCalculatorServiceImpl implements DsrCalculatorService {
 
     private final EmploymentRepository employmentRepository;
-    private static final BigDecimal DSR_LIMIT_PERCENTAGE = new BigDecimal("0.30"); // 30% DSR Cap
+    private static final BigDecimal DSR_LIMIT_PERCENTAGE = new BigDecimal("0.40"); // 30% DSR Cap
 
     public BigDecimal calculateDsrCapacity(UUID customerId) {
         Employment employment = employmentRepository.findByCustomerId(customerId)

@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface PlafondRepository extends JpaRepository<Plafond, UUID> {
     Optional<Plafond> findFirstByCustomer_IdAndStatusOrderByValidFromDesc(UUID customerId, String status);
+    Optional<Plafond> findFirstByCustomer_IdAndStatus(UUID customerId, String status);
 }

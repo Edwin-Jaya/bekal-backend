@@ -9,12 +9,14 @@ import org.edwin.bekal.domain.master.dto.UpdateBankAccountRequest;
 import org.edwin.bekal.domain.master.entity.BankAccount;
 import org.edwin.bekal.domain.master.repository.BankAccountRepository;
 import org.edwin.bekal.domain.master.service.BankAccountService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final CustomerRepository customerRepository;
 
     @Override
+    @CacheEvict(value = "bankAccounts", allEntries = true) // ✅ evict on create
     public BankAccountResponse createBankAccount(CreateBankAccountRequest request) {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + request.getCustomerId()));
@@ -44,14 +47,16 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "bankAccounts", key = "'all'")
     public List<BankAccountResponse> getAllBankAccounts() {
         return bankAccountRepository.findAll().stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "bankAccounts", key = "'id_' + #id.toString()")
     public BankAccountResponse getBankAccountById(UUID id) {
         BankAccount bankAccount = bankAccountRepository.findById(id);
         if (bankAccount == null) {
@@ -62,6 +67,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "bankAccounts", key = "'customer_' + #customerId.toString()")
     public BankAccountResponse getBankAccountByCustomerId(UUID customerId) {
         BankAccount bankAccount = bankAccountRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new RuntimeException("Bank account not found for customer id: " + customerId));
@@ -69,6 +75,10 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "bankAccounts", key = "'id_' + #id.toString()"),
+            @CacheEvict(value = "bankAccounts", key = "'all'")
+    }) // ✅ evict specific + list cache
     public BankAccountResponse updateBankAccount(UUID id, UpdateBankAccountRequest request) {
         BankAccount bankAccount = bankAccountRepository.findById(id);
         if (bankAccount == null) {
@@ -88,6 +98,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    @CacheEvict(value = "bankAccounts", allEntries = true) // ✅ evict all on delete
     public void deleteBankAccount(UUID id) {
         BankAccount bankAccount = bankAccountRepository.findById(id);
         if (bankAccount == null) {

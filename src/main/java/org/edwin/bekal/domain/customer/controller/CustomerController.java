@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.edwin.bekal.common.dto.ApiResponse;
 import org.edwin.bekal.domain.auth.dto.JwtResponse;
+import org.edwin.bekal.domain.auth.dto.UserCheckResponse;
 import org.edwin.bekal.domain.customer.dto.*;
 import org.edwin.bekal.domain.customer.service.CustomerService;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,12 @@ import java.util.UUID;
 public class CustomerController {
 
     private final CustomerService customerService;
+
+    @GetMapping("/check")
+    public ResponseEntity<UserCheckResponse> checkUserByEmail(@RequestParam("email") String email) {
+        UserCheckResponse response = customerService.checkCustomerByEmail(email);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<JwtResponse>> customerLogin(@Valid @RequestBody CustomerLoginRequest request) {
@@ -49,12 +56,13 @@ public class CustomerController {
         return ResponseEntity.ok(ApiResponse.success("Customer Fetched Successfully", responses));
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomer(@PathVariable UUID id, @Valid @RequestBody UpdateCustomerRequest request){
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomer(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateCustomerRequest request
+    ) {
         CustomerResponse response = customerService.updateCustomer(id, request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Customer Updated Successfully", response));
-
+        return ResponseEntity.ok(ApiResponse.success("Customer Updated Successfully", response));
     }
 
     @DeleteMapping("/{id}")

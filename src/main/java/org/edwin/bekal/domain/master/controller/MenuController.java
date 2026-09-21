@@ -3,6 +3,7 @@ package org.edwin.bekal.domain.master.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.edwin.bekal.common.dto.ApiResponse;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.*;
 import org.edwin.bekal.domain.master.service.MenuService;
 import org.springframework.data.domain.Page;
@@ -44,11 +45,10 @@ public class MenuController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<MenuResponse>> getMenus(
+    public ResponseEntity<CacheablePage<MenuResponse>> getMenu(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Boolean status) {
-
         return ResponseEntity.ok(menuService.getMenu(page, size, status));
     }
 }

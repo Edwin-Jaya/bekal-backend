@@ -2,27 +2,40 @@ package org.edwin.bekal.domain.application.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.edwin.bekal.domain.application.dto.ProcessRepaymentRequest;
-import org.edwin.bekal.domain.application.service.LoanLifecycleService;
+import org.edwin.bekal.domain.application.dto.LoanBalanceResponse;
+import org.edwin.bekal.domain.application.dto.PaymentHistoryResponse;
+import org.edwin.bekal.domain.application.dto.RepaymentRequest;
+import org.edwin.bekal.domain.application.entity.PaymentTransaction;
+import org.edwin.bekal.domain.application.service.impl.PaymentServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final LoanLifecycleService loanLifecycleService;
+    private final PaymentServiceImpl paymentService;
 
     @PostMapping("/repay")
-    public ResponseEntity<Map<String, Object>> processRepayment(@Valid @RequestBody ProcessRepaymentRequest request) {
-        loanLifecycleService.processFinalRepayment(request.getCustomerId(), request.getLoanApplicationId());
+    public ResponseEntity<LoanBalanceResponse> repayLoan(@Valid @RequestBody RepaymentRequest request) {
+        PaymentTransaction payment = paymentService.processRepayment(request);
+        LoanBalanceResponse updatedBalance = paymentService.getLoanBalance(payment.getLoan().getId());
+        return ResponseEntity.ok(updatedBalance);
+    }
 
-        return ResponseEntity.ok(Map.of(
-                "status", "SUCCESS",
-                "message", "Pelunasan berhasil diproses dan tier nasabah diperbarui otomatis."
-        ));
+    @GetMapping("/balance/{loanId}")
+    public ResponseEntity<LoanBalanceResponse> getLoanBalance(@PathVariable UUID loanId) {
+        LoanBalanceResponse balance = paymentService.getLoanBalance(loanId);
+        return ResponseEntity.ok(balance);
+    }
+
+    @GetMapping("/history/customer/{customerId}")
+    public ResponseEntity<List<PaymentHistoryResponse>> getCustomerPaymentHistory(@PathVariable UUID customerId) {
+        List<PaymentHistoryResponse> history = paymentService.getPaymentHistoryByCustomer(customerId);
+        return ResponseEntity.ok(history);
     }
 }

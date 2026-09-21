@@ -21,7 +21,7 @@ public class HomeDashboardResponse {
     private BigDecimal activeBillAmount; // Total tagihan berjalan
     private Integer successfulLoansCount;// Jumlah pinjaman lunas
     private Integer requiredForNextTier; // Syarat lunas untuk tier berikutnya
-
+    private String activeLoanId;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;
 }

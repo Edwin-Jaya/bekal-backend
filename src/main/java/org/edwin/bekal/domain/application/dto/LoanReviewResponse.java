@@ -2,9 +2,7 @@ package org.edwin.bekal.domain.application.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Value;
+import lombok.*;
 import org.edwin.bekal.domain.application.entity.LoanApplication;
 import org.edwin.bekal.domain.master.entity.InternalUser;
 
@@ -17,6 +15,8 @@ import java.util.UUID;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoanReviewResponse implements Serializable {
     @NotNull
     private UUID id;

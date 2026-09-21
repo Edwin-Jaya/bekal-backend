@@ -1,6 +1,7 @@
 package org.edwin.bekal.domain.customer.service;
 
 import org.edwin.bekal.domain.auth.dto.JwtResponse;
+import org.edwin.bekal.domain.auth.dto.UserCheckResponse;
 import org.edwin.bekal.domain.customer.dto.*;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface CustomerService {
     // Method baru untuk login customer mobile
     JwtResponse loginCustomer(CustomerLoginRequest request);
     CustomerResponse registerCustomer(RegisterCustomerRequest request);
+    UserCheckResponse checkCustomerByEmail(String email);
 }

@@ -8,6 +8,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import lombok.Builder;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
 @Data
 @Builder
 public class PlafondResponse implements Serializable {
@@ -18,6 +26,7 @@ public class PlafondResponse implements Serializable {
     BigDecimal interestRate;
     Integer maxTenorMonths;
     String status;
+    String creditTier;
     LocalDate validFrom;
     LocalDate validUntil;
 }

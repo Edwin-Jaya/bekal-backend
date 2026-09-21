@@ -30,6 +30,16 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Central Parsing Method: Menjamin aturan parsing & clock skew konsisten
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .clockSkewSeconds(60) // Toleransi clock skew 60 detik
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     // 1. GENERATE TOKEN KARYAWAN (INTERNAL USER)
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -45,7 +55,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("role", role)
-                .claim("user_type", "INTERNAL") // <-- Claim penanda internal user
+                .claim("user_type", "INTERNAL")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -60,7 +70,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(customer.getCustomerEmail())
                 .claim("role", "CUSTOMER")
-                .claim("user_type", "CUSTOMER") // <-- Claim penanda customer
+                .claim("user_type", "CUSTOMER")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -69,34 +79,18 @@ public class JwtTokenProvider {
 
     // 3. EXTRACT USERNAME (EMAIL) DARI TOKEN
     public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return claims.getSubject();
+        return parseClaims(token).getSubject();
     }
 
     // 4. EXTRACT USER_TYPE DARI TOKEN
     public String getUserTypeFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return claims.get("user_type", String.class);
+        return parseClaims(token).get("user_type", String.class);
     }
 
     // 5. VALIDASI TOKEN
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .clockSkewSeconds(60) // Toleransi perbedaan clock server 60 detik
-                    .build()
-                    .parseSignedClaims(authToken);
+            parseClaims(authToken);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());

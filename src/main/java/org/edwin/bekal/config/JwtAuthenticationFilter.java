@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.edwin.bekal.config.security.CustomerUserDetailsService;
 import org.edwin.bekal.config.security.InternalUserDetailsService;
 import org.edwin.bekal.config.security.JwtTokenProvider;
@@ -19,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -41,25 +43,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = getJwtFromRequest(request);
+        try {
+            String token = getJwtFromRequest(request);
 
-        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-            String username = tokenProvider.getEmailFromToken(token);
-            String userType = tokenProvider.getUserTypeFromToken(token);
+            if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+                String username = tokenProvider.getEmailFromToken(token);
+                String userType = tokenProvider.getUserTypeFromToken(token);
 
-            // Dynamic routing berdasarkan claim user_type
-            UserDetails userDetails;
-            if ("CUSTOMER".equalsIgnoreCase(userType)) {
-                userDetails = customerUserDetailsService.loadUserByUsername(username);
-            } else {
-                userDetails = internalUserDetailsService.loadUserByUsername(username);
+                // Dynamic routing berdasarkan claim user_type
+                UserDetails userDetails;
+                if ("CUSTOMER".equalsIgnoreCase(userType)) {
+                    userDetails = customerUserDetailsService.loadUserByUsername(username);
+                } else {
+                    userDetails = internalUserDetailsService.loadUserByUsername(username);
+                }
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (Exception e) {
+            log.error("Tidak dapat mengatur autentikasi pengguna pada Security Context: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

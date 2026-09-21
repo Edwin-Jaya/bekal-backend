@@ -3,12 +3,11 @@ package org.edwin.bekal.domain.customer.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.edwin.bekal.config.security.JwtTokenProvider;
 import org.edwin.bekal.domain.auth.dto.JwtResponse;
+import org.edwin.bekal.domain.auth.dto.UserCheckResponse;
 import org.edwin.bekal.domain.customer.dto.*;
 import org.edwin.bekal.domain.customer.entity.Customer;
-import org.edwin.bekal.domain.customer.entity.Document;
 import org.edwin.bekal.domain.customer.entity.Employment;
 import org.edwin.bekal.domain.customer.repository.CustomerRepository;
-import org.edwin.bekal.domain.customer.repository.DocumentRepository;
 import org.edwin.bekal.domain.customer.repository.EmploymentRepository;
 import org.edwin.bekal.domain.customer.service.CustomerService;
 import org.edwin.bekal.enums.CustomerGender;
@@ -29,21 +28,13 @@ public class CustomerServiceImpl implements CustomerService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final EmploymentRepository employmentRepository;
-    private final DocumentRepository documentRepository;
 
     @Override
     @Transactional
     public CustomerResponse registerCustomer(RegisterCustomerRequest request) {
+        validateUniqueEmail(request.getEmail());
+        validateUniqueNik(request.getNik());
 
-        // 1. Validasi Unik Email & NIK
-        if (customerRepository.existsByCustomerEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists!");
-        }
-        if (customerRepository.existsByCustomerNik(request.getNik())) {
-            throw new IllegalArgumentException("NIK already exists!");
-        }
-
-        // 2. Simpan Customer
         Customer customer = new Customer();
         customer.setCustomerFullName(request.getFullName());
         customer.setCustomerEmail(request.getEmail());
@@ -51,27 +42,15 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setCustomerPhoneNumber(request.getPhoneNumber());
         customer.setCustomerNik(request.getNik());
 
-        // Mapping Date (LocalDate ke Date jika entity masih java.util.Date)
         if (request.getDateOfBirth() != null) {
             customer.setCustomerDateOfBirth(java.sql.Date.valueOf(request.getDateOfBirth()));
         }
         customer.setCustomerAddress(request.getAddress());
-
-        // Handling Gender "MALE" / "FEMALE" -> Enum CustomerGender
-        if (request.getGender() != null) {
-            if (request.getGender().equalsIgnoreCase("MALE")) {
-                customer.setCustomerGender(CustomerGender.PRIA);
-            } else if (request.getGender().equalsIgnoreCase("FEMALE")) {
-                customer.setCustomerGender(CustomerGender.WANITA);
-            }
-        } else {
-            customer.setCustomerGender(CustomerGender.PRIA);
-        }
-
+        customer.setCustomerGender(parseGender(request.getGender()));
         customer.setCustomerStatus(CustomerStatus.ACTIVE);
+
         Customer savedCustomer = customerRepository.save(customer);
 
-        // 3. Simpan Employment jika companyName dikirim dari Android
         if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
             Employment employment = new Employment();
             employment.setCustomer(savedCustomer);
@@ -86,7 +65,6 @@ public class CustomerServiceImpl implements CustomerService {
                 employment.setCustomerEmploymentStartDate(java.sql.Date.valueOf(request.getEmploymentStartDate()));
             }
             employment.setCustomerIsCurrent(true);
-
             employmentRepository.save(employment);
         }
 
@@ -97,26 +75,22 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public JwtResponse loginCustomer(CustomerLoginRequest request) {
         Customer customer = customerRepository.findByCustomerEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+                .orElseThrow(() -> new IllegalArgumentException("Email atau kata sandi salah"));
 
         if (customer.getCustomerStatus() != CustomerStatus.ACTIVE) {
-            throw new IllegalStateException("Customer account is inactive");
+            throw new IllegalStateException("Akun pelanggan tidak aktif");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), customer.getCustomerPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new IllegalArgumentException("Email atau kata sandi salah");
         }
 
-        // Update metadata device & last login
         if (request.getDeviceToken() != null) {
             customer.setCustomerDeviceToken(request.getDeviceToken());
         }
         customer.setCustomerLastLoginAt(Instant.now());
-        customerRepository.save(customer);
 
-        // Generate token
-        String jwt = tokenProvider.generateTokenForCustomer(customer); // Sesuaikan method di JwtTokenProvider kamu
-
+        String jwt = tokenProvider.generateTokenForCustomer(customer);
         return new JwtResponse(jwt, "Bearer");
     }
 
@@ -124,66 +98,78 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional(readOnly = true)
     public CustomerResponse getCurrentCustomer(String email) {
         Customer customer = customerRepository.findByCustomerEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Customer account not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Pelanggan tidak ditemukan"));
 
         if (customer.getCustomerStatus() != CustomerStatus.ACTIVE) {
-            throw new IllegalStateException("Customer account is inactive");
+            throw new IllegalStateException("Akun pelanggan tidak aktif");
         }
 
-        return mapToResponse(customer); // sesuaikan dengan helper mapper Anda
+        return mapToResponse(customer);
     }
-
 
     @Override
     @Transactional
-    public CustomerResponse updateCustomer(UUID id, UpdateCustomerRequest request){
+    public CustomerResponse updateCustomer(UUID id, UpdateCustomerRequest request) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found with ID" + id));
+                .orElseThrow(() -> new IllegalArgumentException("Pelanggan tidak ditemukan dengan ID: " + id));
 
-        if (!customer.getCustomerEmail().equalsIgnoreCase(request.getCustomerEmail())) {
-            if (customerRepository.existsByCustomerEmail(request.getCustomerEmail())) {
-                throw new IllegalArgumentException("Email " + request.getCustomerEmail() + " already exists!");
-            }
+        // 1. Validasi Unik terlebih dahulu sebelum mengubah state entity
+        boolean isEmailChanged = request.getCustomerEmail() != null
+                && !request.getCustomerEmail().isBlank()
+                && !customer.getCustomerEmail().equalsIgnoreCase(request.getCustomerEmail());
+
+        if (isEmailChanged) {
+            validateUniqueEmail(request.getCustomerEmail());
+        }
+
+        boolean isNikChanged = request.getCustomerNik() != null
+                && !request.getCustomerNik().isBlank()
+                && !customer.getCustomerNik().equalsIgnoreCase(request.getCustomerNik());
+
+        if (isNikChanged) {
+            validateUniqueNik(request.getCustomerNik());
+        }
+
+        // 2. Terapkan perubahan entity setelah semua query validasi selesai
+        if (isEmailChanged) {
             customer.setCustomerEmail(request.getCustomerEmail());
         }
-
-        if (!customer.getCustomerNik().equalsIgnoreCase(request.getCustomerNik())) {
-            if (customerRepository.existsByCustomerNik(request.getCustomerNik())) {
-                throw new IllegalArgumentException("NIK " + request.getCustomerNik() + " already exists!");
-            }
+        if (isNikChanged) {
             customer.setCustomerNik(request.getCustomerNik());
         }
+        if (request.getCustomerFullName() != null && !request.getCustomerFullName().isBlank()) {
+            customer.setCustomerFullName(request.getCustomerFullName());
+        }
+        if (request.getCustomerAddress() != null && !request.getCustomerAddress().isBlank()) {
+            customer.setCustomerAddress(request.getCustomerAddress());
+        }
+        if (request.getCustomerDateOfBirth() != null) {
+            customer.setCustomerDateOfBirth(request.getCustomerDateOfBirth());
+        }
+        if (request.getCustomerPhoneNumber() != null && !request.getCustomerPhoneNumber().isBlank()) {
+            customer.setCustomerPhoneNumber(request.getCustomerPhoneNumber());
+        }
+        if (request.getCustomerGender() != null && !request.getCustomerGender().isBlank()) {
+            customer.setCustomerGender(parseGender(request.getCustomerGender()));
+        }
 
-        customer.setCustomerFullName(request.getCustomerFullName());
-        customer.setCustomerAddress(request.getCustomerAddress());
-        customer.setCustomerDateOfBirth(request.getCustomerDateOfBirth());
-        customer.setCustomerGender(CustomerGender.PRIA);
-        customer.setCustomerPhoneNumber(request.getCustomerPhoneNumber());
-        customer.setCustomerStatus(CustomerStatus.ACTIVE);
-
-        Customer updated = customerRepository.saveAndFlush(customer);
-
-        return mapToResponse(updated);
+        return mapToResponse(customer);
     }
 
     @Override
     @Transactional
-    public void deleteCustomer(UUID id){
+    public void deleteCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found with ID" + id));
+                .orElseThrow(() -> new IllegalArgumentException("Pelanggan tidak ditemukan dengan ID: " + id));
 
         customer.setCustomerStatus(CustomerStatus.INACTIVE);
     }
 
     @Override
     @Transactional
-    public CustomerResponse createCustomer(CreateCustomerRequest request){
-        if(customerRepository.existsByCustomerEmail(request.getCustomerEmail())){
-            throw new IllegalArgumentException("Email already exists!");
-        }
-        if(customerRepository.existsByCustomerNik(request.getCustomerNik())){
-            throw new IllegalArgumentException("NIK already exists!");
-        }
+    public CustomerResponse createCustomer(CreateCustomerRequest request) {
+        validateUniqueEmail(request.getCustomerEmail());
+        validateUniqueNik(request.getCustomerNik());
 
         Customer customer = new Customer();
         customer.setCustomerFullName(request.getCustomerFullName());
@@ -191,25 +177,32 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setCustomerEmail(request.getCustomerEmail());
         customer.setCustomerNik(request.getCustomerNik());
         customer.setCustomerDateOfBirth(request.getCustomerDateOfBirth());
-        customer.setCustomerGender(CustomerGender.PRIA);
+        customer.setCustomerGender(parseGender(request.getCustomerGender()));
         customer.setCustomerPasswordHash(passwordEncoder.encode(request.getCustomerPasswordHash()));
         customer.setCustomerPhoneNumber(request.getCustomerPhoneNumber());
         customer.setCustomerStatus(CustomerStatus.ACTIVE);
 
-        Customer saved = customerRepository.saveAndFlush(customer);
+        Customer saved = customerRepository.save(customer);
         return mapToResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CustomerResponse> getAllCustomer(){
+    public UserCheckResponse checkCustomerByEmail(String email) {
+        boolean exists = customerRepository.existsByCustomerEmail(email);
+        String message = exists ? "Email sudah terdaftar" : "Email tersedia";
+        return new UserCheckResponse(exists, message);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CustomerResponse> getAllCustomer() {
         return customerRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-
-    public CustomerResponse mapToResponse(Customer customer){
+    public CustomerResponse mapToResponse(Customer customer) {
         return CustomerResponse.builder()
                 .id(customer.getId())
                 .customerFullName(customer.getCustomerFullName())
@@ -219,10 +212,35 @@ public class CustomerServiceImpl implements CustomerService {
                 .customerDateOfBirth(customer.getCustomerDateOfBirth())
                 .customerGender(customer.getCustomerGender() != null ? customer.getCustomerGender().name() : null)
                 .customerPhoneNumber(customer.getCustomerPhoneNumber())
-                .customerStatus(customer.getCustomerStatus().name())
+                .customerStatus(customer.getCustomerStatus() != null ? customer.getCustomerStatus().name() : null)
                 .customerPasswordHash(customer.getCustomerPasswordHash())
                 .createdAt(customer.getCreatedAt())
                 .updatedAt(customer.getUpdatedAt())
                 .build();
+    }
+
+    // --- Private Helper Methods ---
+
+    private void validateUniqueEmail(String email) {
+        if (customerRepository.existsByCustomerEmail(email)) {
+            throw new IllegalArgumentException("Email sudah terdaftar: " + email);
+        }
+    }
+
+    private void validateUniqueNik(String nik) {
+        if (customerRepository.existsByCustomerNik(nik)) {
+            throw new IllegalArgumentException("NIK sudah terdaftar: " + nik);
+        }
+    }
+
+    private CustomerGender parseGender(String genderInput) {
+        if (genderInput == null || genderInput.isBlank()) {
+            return CustomerGender.PRIA;
+        }
+        String normalized = genderInput.trim().toUpperCase();
+        if (normalized.equals("FEMALE") || normalized.equals("WANITA")) {
+            return CustomerGender.WANITA;
+        }
+        return CustomerGender.PRIA;
     }
 }

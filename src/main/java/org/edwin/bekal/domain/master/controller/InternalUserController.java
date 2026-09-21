@@ -3,6 +3,7 @@ package org.edwin.bekal.domain.master.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.edwin.bekal.common.dto.ApiResponse;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.*;
 import org.edwin.bekal.domain.master.service.InternalUserService;
 import org.springframework.data.domain.Page;
@@ -36,11 +37,10 @@ public class InternalUserController {
 //    }
 
     @GetMapping
-    public ResponseEntity<Page<InternalUserResponse>> getInternalUsers(
+    public ResponseEntity<CacheablePage<InternalUserResponse>> getInternalUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Boolean status) {
-
         return ResponseEntity.ok(internalUserService.getInternalUser(page, size, status));
     }
 

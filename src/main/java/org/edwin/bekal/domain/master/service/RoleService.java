@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.master.service;
 
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.*;
 import org.springframework.data.domain.Page;
 
@@ -11,5 +12,5 @@ public interface RoleService {
     List<RoleResponse> getAllRole();
     RoleResponse updateRole(UUID id, UpdateRoleRequest request);
     void deleteRole(UUID id);
-    Page<RoleResponse> getRole(int page, int size, Boolean status);
+    CacheablePage<RoleResponse> getRole(int page, int size, Boolean status);
 }

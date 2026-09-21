@@ -37,4 +37,18 @@ public class FileStorageService {
             throw new RuntimeException("Failed to store file: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Hapus file fisik berdasarkan URL yang dikembalikan oleh store()
+     * (format: "/uploads/{namafile}"). Dipakai saat rollback registrasi gagal.
+     */
+    public void deleteFile(String fileUrl) {
+        try {
+            String fileName = fileUrl.replaceFirst("^/?uploads/", "");
+            Path targetPath = Paths.get(uploadDir).resolve(fileName);
+            Files.deleteIfExists(targetPath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete file: " + fileUrl, e);
+        }
+    }
 }

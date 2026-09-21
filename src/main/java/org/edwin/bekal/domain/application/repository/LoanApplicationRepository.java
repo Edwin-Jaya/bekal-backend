@@ -76,4 +76,6 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     Page<LoanApplication> findAllByOrderByUpdatedAtDesc(Pageable pageable);
     Page<LoanApplication> findByCustomer_Id(UUID customerId, Pageable pageable);
+
+    Optional<LoanApplication> findTopByCustomer_IdOrderBySubmittedAtDesc(UUID customerId);
 }

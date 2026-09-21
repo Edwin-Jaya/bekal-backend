@@ -32,8 +32,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Slf4j
@@ -51,6 +54,7 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
     private final LoanApprovalRepository loanApprovalRepository;
     private final LoanDisbursementRepository loanDisbursementRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final PushNotificationServiceImpl pushNotificationService;
 
     @Override
     @Transactional
@@ -138,6 +142,21 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
             loanApplicationRepository.save(loanApplication);
         }
 
+        // ⬇️ Trigger notifikasi setelah status resmi berubah
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("id", "ID"));
+        symbols.setGroupingSeparator('.');
+
+// Format angka tanpa desimal sen
+        DecimalFormat rupiahFormat = new DecimalFormat("Rp #,##0", symbols);
+
+        String formattedAmount = rupiahFormat.format(loanDisbursement.getDisbursementAmount());
+
+        pushNotificationService.sendToCustomer(
+                customerId,
+                "Dana Kamu Sudah Cair! 🎉",
+                "Pinjaman senilai " + formattedAmount + " telah berhasil ditransfer ke rekening kamu."
+        );
+
         return mapper.toLoanDisbursementResponse(savedDisbursement);
     }
 
@@ -154,6 +173,7 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
             return new LoanDisbursementHistoryResponse(
                     app.getId(),
                     app.getApplicationNumber(),
+                    app.getAmountRequested(),
                     app.getCustomer().getCustomerFullName(),
                     app.getStatus(),
                     review.getDisbursedAt()
