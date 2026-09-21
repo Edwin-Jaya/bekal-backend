@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.master.service.impl;
 
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateMenuRequest;
 import org.edwin.bekal.domain.master.dto.MenuResponse;
 import org.edwin.bekal.domain.master.dto.UpdateMenuRequest;
@@ -55,6 +56,7 @@ class MenuServiceImplTest {
             assertThat(response.getMenuIsActive()).isTrue();
         }
     }
+
     @Nested
     @DisplayName("Menu Parent and Query Edge Cases")
     class MenuParentAndQueryEdgeCases {
@@ -106,7 +108,7 @@ class MenuServiceImplTest {
 
             given(menuRepository.findByMenuIsActive(any(Boolean.class), any(Pageable.class))).willReturn(page);
 
-            Page<MenuResponse> result = menuService.getMenu(0, 10, true);
+            CacheablePage<MenuResponse> result = menuService.getMenu(0, 10, true);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
@@ -164,7 +166,6 @@ class MenuServiceImplTest {
         }
     }
 
-
     @Nested
     @DisplayName("getMenu & deleteMenu Tests")
     class GetAndDeleteMenuTests {
@@ -178,7 +179,7 @@ class MenuServiceImplTest {
 
             given(menuRepository.findAll(any(Pageable.class))).willReturn(page);
 
-            Page<MenuResponse> result = menuService.getMenu(0, 10, null);
+            CacheablePage<MenuResponse> result = menuService.getMenu(0, 10, null);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);

@@ -1,6 +1,7 @@
 package org.edwin.bekal.domain.master.controller;
 
 import org.edwin.bekal.common.dto.ApiResponse;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateInternalUserRequest;
 import org.edwin.bekal.domain.master.dto.InternalUserResponse;
 import org.edwin.bekal.domain.master.dto.UpdateInternalUserRequest;
@@ -12,8 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +63,9 @@ class InternalUserControllerTest {
         @Test
         @DisplayName("Should return paginated internal users successfully")
         void getInternalUsers_success() {
-            Page<InternalUserResponse> pageResponse = new PageImpl<>(List.of(
+            @SuppressWarnings("unchecked")
+            CacheablePage<InternalUserResponse> pageResponse = mock(CacheablePage.class);
+            given(pageResponse.getContent()).willReturn(List.of(
                     InternalUserResponse.builder()
                             .internalUserEmail("user1@bekal.org")
                             .build()
@@ -71,7 +73,7 @@ class InternalUserControllerTest {
 
             given(internalUserService.getInternalUser(0, 10, true)).willReturn(pageResponse);
 
-            ResponseEntity<Page<InternalUserResponse>> response = internalUserController.getInternalUsers(0, 10, true);
+            ResponseEntity<CacheablePage<InternalUserResponse>> response = internalUserController.getInternalUsers(0, 10, true);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();

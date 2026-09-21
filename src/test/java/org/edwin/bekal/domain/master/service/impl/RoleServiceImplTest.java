@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.master.service.impl;
 
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateRoleRequest;
 import org.edwin.bekal.domain.master.dto.RoleResponse;
 import org.edwin.bekal.domain.master.dto.UpdateRoleRequest;
@@ -157,7 +158,7 @@ class RoleServiceImplTest {
 
             given(roleRepository.findByRoleIsActive(any(Boolean.class), any(Pageable.class))).willReturn(page);
 
-            Page<RoleResponse> result = roleService.getRole(0, 10, true);
+            CacheablePage<RoleResponse> result = roleService.getRole(0, 10, true);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
@@ -172,7 +173,7 @@ class RoleServiceImplTest {
 
             given(roleRepository.findAll(any(Pageable.class))).willReturn(page);
 
-            Page<RoleResponse> result = roleService.getRole(0, 10, null);
+            CacheablePage<RoleResponse> result = roleService.getRole(0, 10, null);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);

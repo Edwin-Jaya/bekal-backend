@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -65,9 +66,33 @@ class BankAccountServiceImplTest {
             BankAccountResponse response = bankAccountService.createBankAccount(request);
 
             assertThat(response).isNotNull();
+            assertThat(response.getCustomerId()).isEqualTo(customerId);
             assertThat(response.getBankName()).isEqualTo("BCA");
             assertThat(response.getBankAccountNumber()).isEqualTo("123456789");
             assertThat(response.getIsPrimary()).isTrue();
+            assertThat(response.getIsVerified()).isFalse();
+            assertThat(response.getStatus()).isEqualTo("active");
+        }
+
+        @Test
+        @DisplayName("Should default isPrimary to false when isPrimary in request is null")
+        void createBankAccount_nullIsPrimary_defaultFalse() {
+            UUID customerId = UUID.randomUUID();
+            CreateBankAccountRequest request = new CreateBankAccountRequest();
+            request.setCustomerId(customerId);
+            request.setBankName("BCA");
+            request.setIsPrimary(null);
+
+            Customer customer = new Customer();
+            customer.setId(customerId);
+
+            given(customerRepository.findById(customerId)).willReturn(Optional.of(customer));
+            given(bankAccountRepository.save(any(BankAccount.class))).willAnswer(inv -> inv.getArgument(0));
+
+            BankAccountResponse response = bankAccountService.createBankAccount(request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getIsPrimary()).isFalse();
         }
 
         @Test
@@ -176,11 +201,18 @@ class BankAccountServiceImplTest {
     class UpdateBankAccountTests {
 
         @Test
-        @DisplayName("Should update bank account successfully")
+        @DisplayName("Should update bank account fields successfully")
         void updateBankAccount_success() {
             UUID id = UUID.randomUUID();
+            Instant now = Instant.now();
+
             UpdateBankAccountRequest request = new UpdateBankAccountRequest();
             request.setBankName("BNI");
+            request.setBankAccountNumber("987654321");
+            request.setBankAccountHolder("New Holder");
+            request.setIsPrimary(true);
+            request.setIsVerified(true);
+            request.setVerifiedAt(now);
             request.setStatus("inactive");
 
             BankAccount existing = new BankAccount();
@@ -195,7 +227,37 @@ class BankAccountServiceImplTest {
 
             assertThat(response).isNotNull();
             assertThat(response.getBankName()).isEqualTo("BNI");
+            assertThat(response.getBankAccountNumber()).isEqualTo("987654321");
+            assertThat(response.getBankAccountHolder()).isEqualTo("New Holder");
+            assertThat(response.getIsPrimary()).isTrue();
+            assertThat(response.getIsVerified()).isTrue();
+            assertThat(response.getVerifiedAt()).isEqualTo(now);
             assertThat(response.getStatus()).isEqualTo("inactive");
+        }
+
+        @Test
+        @DisplayName("Should update only provided non-null fields during partial update")
+        void updateBankAccount_partialUpdate_success() {
+            UUID id = UUID.randomUUID();
+
+            UpdateBankAccountRequest request = new UpdateBankAccountRequest();
+            request.setBankName("BRI"); // Only bank name updated
+
+            BankAccount existing = new BankAccount();
+            existing.setId(id);
+            existing.setBankName("BCA");
+            existing.setBankAccountNumber("111222333");
+            existing.setStatus("active");
+
+            given(bankAccountRepository.findById(id)).willReturn(existing);
+            given(bankAccountRepository.save(any(BankAccount.class))).willAnswer(inv -> inv.getArgument(0));
+
+            BankAccountResponse response = bankAccountService.updateBankAccount(id, request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getBankName()).isEqualTo("BRI");
+            assertThat(response.getBankAccountNumber()).isEqualTo("111222333"); // Unchanged
+            assertThat(response.getStatus()).isEqualTo("active"); // Unchanged
         }
 
         @Test

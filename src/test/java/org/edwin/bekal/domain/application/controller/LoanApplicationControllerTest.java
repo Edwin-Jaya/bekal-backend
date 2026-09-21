@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,11 +34,23 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Unit test for {@link LoanApplicationController}.
+ *
+ * Change from previous version:
+ * - getLoanApplicationByCustomer now returns CacheablePage<LoanApplicationResponse>
+ *   instead of Page<LoanApplicationResponse>.
+ *   CacheablePage has fields: content, totalPages, totalElements, size, number.
+ *   → jsonPath assertions updated accordingly (no $.pageable, no Spring Page wrapper).
+ * - All other endpoints still return Page<LoanApplicationResponse> — unchanged.
+ * - new ArrayList<>() used everywhere instead of Collections.emptyList() / List.of()
+ *   to avoid Jackson UnsupportedOperationException on PageImpl serialization.
+ */
 @ExtendWith(MockitoExtension.class)
 class LoanApplicationControllerTest {
 
     // ------------------------------------------------------------------ //
-    //  URL constants — single source of truth                             //
+    //  URL constants                                                       //
     // ------------------------------------------------------------------ //
     private static final String BASE_URL                 = "/api/v1/loan-applications";
     private static final String BY_CUSTOMER_URL          = BASE_URL + "/customer/{customerId}";
@@ -58,18 +70,10 @@ class LoanApplicationControllerTest {
     // ------------------------------------------------------------------ //
     //  Mocked services                                                    //
     // ------------------------------------------------------------------ //
-    @Mock
-    private LoanApplicationService loanApplicationService;
+    @Mock private LoanApplicationService loanApplicationService;
+    @Mock private LoanReviewDetailServiceImpl loanReviewDetailService;
+    @Mock private LoanDisbursementService loanDisbursementService;
 
-    @Mock
-    private LoanReviewDetailServiceImpl loanReviewDetailService;
-
-    @Mock
-    private LoanDisbursementService loanDisbursementService;
-
-    // ------------------------------------------------------------------ //
-    //  Controller under test                                              //
-    // ------------------------------------------------------------------ //
     @InjectMocks
     private LoanApplicationController loanApplicationController;
 
@@ -79,7 +83,8 @@ class LoanApplicationControllerTest {
     private UUID testId;
     private UUID testCustomerId;
     private LoanApplicationResponse sampleResponse;
-    private Page<LoanApplicationResponse> samplePage;
+    private CacheablePage<LoanApplicationResponse> sampleCacheablePage; // for getLoanApplicationByCustomer
+    private Page<LoanApplicationResponse> samplePage;                   // for all other endpoints
     private LoanReviewDetail sampleReviewDetail;
 
     @BeforeEach
@@ -87,7 +92,6 @@ class LoanApplicationControllerTest {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
-        // Build MockMvc manually — include MessageConverter with JavaTimeModule support
         mockMvc = MockMvcBuilders
                 .standaloneSetup(loanApplicationController)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
@@ -110,6 +114,17 @@ class LoanApplicationControllerTest {
                 .submittedAt(Instant.now())
                 .build();
 
+        // CacheablePage fixture — used only by getLoanApplicationByCustomer
+        // CacheablePage fields: content, totalPages, totalElements, size, number
+        sampleCacheablePage = new CacheablePage<>(
+                List.of(sampleResponse), // content
+                1,                       // totalPages
+                1L,                      // totalElements
+                10,                      // size
+                0                        // number (page index)
+        );
+
+        // Standard Spring Page fixture — used by all other endpoints
         samplePage = new PageImpl<>(
                 List.of(sampleResponse),
                 PageRequest.of(0, 10),
@@ -122,21 +137,25 @@ class LoanApplicationControllerTest {
     }
 
     // ==================================================================== //
-    //  GET /customer/{customerId}                                          //
+    //  GET /customer/{customerId}  → returns CacheablePage                 //
     // ==================================================================== //
 
     @Test
-    @DisplayName("GET /customer/{customerId} - returns 200 with page")
+    @DisplayName("GET /customer/{customerId} - returns 200 with CacheablePage")
     void getLoanApplicationByCustomer_success() throws Exception {
         given(loanApplicationService.getLoanApplicationByCustomer(eq(testCustomerId), anyInt(), anyInt()))
-                .willReturn(samplePage);
+                .willReturn(sampleCacheablePage);
 
         mockMvc.perform(get(BY_CUSTOMER_URL, testCustomerId)
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
+                // CacheablePage fields (not Spring Page wrapper)
                 .andExpect(jsonPath("$.content[0].applicationNumber").value("APP-0001"))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.number").value(0));
 
         verify(loanApplicationService).getLoanApplicationByCustomer(testCustomerId, 0, 10);
     }
@@ -145,7 +164,7 @@ class LoanApplicationControllerTest {
     @DisplayName("GET /customer/{customerId} - uses default page=0 size=10 when params absent")
     void getLoanApplicationByCustomer_defaultParams() throws Exception {
         given(loanApplicationService.getLoanApplicationByCustomer(eq(testCustomerId), eq(0), eq(10)))
-                .willReturn(samplePage);
+                .willReturn(sampleCacheablePage);
 
         mockMvc.perform(get(BY_CUSTOMER_URL, testCustomerId))
                 .andExpect(status().isOk());
@@ -154,10 +173,10 @@ class LoanApplicationControllerTest {
     }
 
     @Test
-    @DisplayName("GET /customer/{customerId} - returns empty page when no results")
+    @DisplayName("GET /customer/{customerId} - returns empty CacheablePage when no results")
     void getLoanApplicationByCustomer_emptyPage() throws Exception {
-        // PERBAIKAN: Gunakan PageRequest.of(0, 10) sebagai pengganti unpaged()
-        Page<LoanApplicationResponse> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0L);
+        CacheablePage<LoanApplicationResponse> emptyPage =
+                new CacheablePage<>(new ArrayList<>(), 0, 0L, 10, 0);
 
         given(loanApplicationService.getLoanApplicationByCustomer(eq(testCustomerId), anyInt(), anyInt()))
                 .willReturn(emptyPage);
@@ -166,7 +185,8 @@ class LoanApplicationControllerTest {
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     // ==================================================================== //
@@ -211,7 +231,7 @@ class LoanApplicationControllerTest {
     }
 
     // ==================================================================== //
-    //  GET /                                                               //
+    //  GET /   → still returns Page<LoanApplicationResponse>              //
     // ==================================================================== //
 
     @Test
@@ -259,7 +279,7 @@ class LoanApplicationControllerTest {
     }
 
     // ==================================================================== //
-    //  GET /pending-reviews                                                 //
+    //  GET /pending-reviews                                                //
     // ==================================================================== //
 
     @Test
@@ -280,8 +300,8 @@ class LoanApplicationControllerTest {
     @Test
     @DisplayName("GET /pending-reviews - returns empty page when none pending")
     void getPendingLoanApplication_empty() throws Exception {
-        // PERBAIKAN: Gunakan PageRequest.of(0, 10) sebagai pengganti unpaged()
-        Page<LoanApplicationResponse> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0L);
+        Page<LoanApplicationResponse> emptyPage =
+                new PageImpl<>(new ArrayList<>(), PageRequest.of(0, 10), 0L);
 
         given(loanApplicationService.getPendingLoanApplication(anyInt(), anyInt()))
                 .willReturn(emptyPage);
@@ -359,8 +379,7 @@ class LoanApplicationControllerTest {
 
         mockMvc.perform(get(DETAIL_URL, testId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loanApplicationResponse.applicationNumber")
-                        .value("APP-0001"));
+                .andExpect(jsonPath("$.loanApplicationResponse.applicationNumber").value("APP-0001"));
 
         verify(loanReviewDetailService).getDetail(testId);
         verifyNoInteractions(loanDisbursementService);
@@ -371,15 +390,14 @@ class LoanApplicationControllerTest {
     // ==================================================================== //
 
     @Test
-    @DisplayName("GET /{id}/detail-approval - returns 200, delegates to loanReviewDetailService")
+    @DisplayName("GET /{id}/detail-approval - delegates to loanReviewDetailService")
     void getDetailApproval_success() throws Exception {
         given(loanReviewDetailService.getDetail(eq(testId)))
                 .willReturn(sampleReviewDetail);
 
         mockMvc.perform(get(DETAIL_APPROVAL_URL, testId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loanApplicationResponse.applicationNumber")
-                        .value("APP-0001"));
+                .andExpect(jsonPath("$.loanApplicationResponse.applicationNumber").value("APP-0001"));
 
         verify(loanReviewDetailService).getDetail(testId);
         verifyNoInteractions(loanDisbursementService);
@@ -390,15 +408,14 @@ class LoanApplicationControllerTest {
     // ==================================================================== //
 
     @Test
-    @DisplayName("GET /{id}/detail-disbursement - returns 200, delegates to loanDisbursementService")
+    @DisplayName("GET /{id}/detail-disbursement - delegates to loanDisbursementService")
     void getDetailDisbursement_success() throws Exception {
         given(loanDisbursementService.getDetailDisbursement(eq(testId)))
                 .willReturn(sampleReviewDetail);
 
         mockMvc.perform(get(DETAIL_DISBURSEMENT_URL, testId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loanApplicationResponse.applicationNumber")
-                        .value("APP-0001"));
+                .andExpect(jsonPath("$.loanApplicationResponse.applicationNumber").value("APP-0001"));
 
         verify(loanDisbursementService).getDetailDisbursement(testId);
         verifyNoInteractions(loanReviewDetailService);

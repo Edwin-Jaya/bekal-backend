@@ -1,6 +1,7 @@
 package org.edwin.bekal.domain.master.controller;
 
 import org.edwin.bekal.common.dto.ApiResponse;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateMenuRequest;
 import org.edwin.bekal.domain.master.dto.MenuResponse;
 import org.edwin.bekal.domain.master.dto.UpdateMenuRequest;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,19 +91,21 @@ class MenuControllerTest {
     }
 
     @Nested
-    @DisplayName("getMenus Tests")
-    class GetMenusTests {
+    @DisplayName("getMenu Tests")
+    class GetMenuTests {
 
         @Test
-        @DisplayName("Should return paginated menus successfully")
-        void getMenus_success() {
-            Page<MenuResponse> pageResponse = new PageImpl<>(List.of(
-                    MenuResponse.builder().menuName("Settings").build()
-            ));
+        @DisplayName("Should return paginated menus successfully as CacheablePage")
+        void getMenu_success() {
+            CacheablePage<MenuResponse> cacheablePage = CacheablePage.from(
+                    new PageImpl<>(List.of(
+                            MenuResponse.builder().menuName("Settings").build()
+                    ))
+            );
 
-            given(menuService.getMenu(0, 10, true)).willReturn(pageResponse);
+            given(menuService.getMenu(0, 10, true)).willReturn(cacheablePage);
 
-            ResponseEntity<Page<MenuResponse>> response = menuController.getMenus(0, 10, true);
+            ResponseEntity<CacheablePage<MenuResponse>> response = menuController.getMenu(0, 10, true);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();

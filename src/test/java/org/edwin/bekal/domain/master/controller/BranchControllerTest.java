@@ -59,6 +59,8 @@ class BranchControllerTest {
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody()).hasSize(1);
             assertThat(response.getBody().get(0).getBranchCode()).isEqualTo("JKT01");
+            assertThat(response.getBody().get(0).getBranchName()).isEqualTo("Jakarta Pusat");
+            assertThat(response.getBody().get(0).getBranchCity()).isEqualTo("Jakarta");
         }
     }
 
@@ -78,6 +80,7 @@ class BranchControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Branch Created Successfully");
             assertThat(response.getBody().getData().getBranchName()).isEqualTo("Bandung Branch");
         }
 
@@ -95,6 +98,7 @@ class BranchControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Branches Fetched Successfully");
             assertThat(response.getBody().getData()).hasSize(2);
         }
 
@@ -111,6 +115,7 @@ class BranchControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Branch Updated Successfully");
             assertThat(response.getBody().getData().getBranchName()).isEqualTo("Updated Branch");
         }
 

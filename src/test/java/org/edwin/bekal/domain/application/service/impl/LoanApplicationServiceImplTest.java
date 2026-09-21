@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.application.service.impl;
 
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.application.dto.CreateLoanApplicationRequest;
 import org.edwin.bekal.domain.application.dto.LoanApplicationResponse;
 import org.edwin.bekal.domain.application.entity.LoanApplication;
@@ -36,7 +37,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -67,7 +67,7 @@ class LoanApplicationServiceImplTest {
     class ReadOnlyQueries {
 
         @Test
-        @DisplayName("getLoanApplicationByCustomer - Success returning mapped page")
+        @DisplayName("getLoanApplicationByCustomer - Success returning mapped CacheablePage")
         void getLoanApplicationByCustomer_success() {
             UUID customerId = UUID.randomUUID();
             Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
@@ -76,7 +76,8 @@ class LoanApplicationServiceImplTest {
 
             given(loanApplicationRepository.findByCustomer_Id(customerId, pageable)).willReturn(page);
 
-            Page<LoanApplicationResponse> result = loanApplicationService.getLoanApplicationByCustomer(customerId, 0, 10);
+            // Menggunakan CacheablePage sesuai implementasi service terbaru
+            CacheablePage<LoanApplicationResponse> result = loanApplicationService.getLoanApplicationByCustomer(customerId, 0, 10);
 
             assertThat(result).isNotNull();
             assertThat(result.getTotalElements()).isEqualTo(1);

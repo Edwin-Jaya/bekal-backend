@@ -108,6 +108,25 @@ class BranchServiceImplTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Branch not found with ID" + id);
         }
+
+        @Test
+        @DisplayName("Should throw exception when updating to an existing branch code")
+        void updateBranch_duplicateCode_throwsException() {
+            UUID id = UUID.randomUUID();
+            UpdateBranchRequest request = new UpdateBranchRequest();
+            request.setBranchCode("JKT02");
+
+            Branch existing = new Branch();
+            existing.setId(id);
+            existing.setBranchCode("JKT01");
+
+            given(branchRepository.findById(id)).willReturn(Optional.of(existing));
+            given(branchRepository.existsByBranchCode("JKT02")).willReturn(true);
+
+            assertThatThrownBy(() -> branchService.updateBranch(id, request))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("already exists!");
+        }
     }
 
     @Nested

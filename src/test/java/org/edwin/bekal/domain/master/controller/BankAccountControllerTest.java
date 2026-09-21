@@ -41,7 +41,7 @@ class BankAccountControllerTest {
             CreateBankAccountRequest request = new CreateBankAccountRequest();
             BankAccountResponse responseDto = BankAccountResponse.builder()
                     .bankName("BCA")
-                    .bankAccountNumber("123456") // Diperbarui dari accountNumber menjadi bankAccountNumber
+                    .bankAccountNumber("123456")
                     .build();
 
             given(bankAccountService.createBankAccount(request)).willReturn(responseDto);
@@ -50,6 +50,7 @@ class BankAccountControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Bank Account Created Successfully");
             assertThat(response.getBody().getData().getBankName()).isEqualTo("BCA");
             assertThat(response.getBody().getData().getBankAccountNumber()).isEqualTo("123456");
         }
@@ -73,6 +74,7 @@ class BankAccountControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Bank Accounts Fetched Successfully");
             assertThat(response.getBody().getData()).hasSize(2);
         }
 
@@ -92,6 +94,7 @@ class BankAccountControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Bank Account Fetched Successfully");
             assertThat(response.getBody().getData().getId()).isEqualTo(id);
         }
 
@@ -110,6 +113,7 @@ class BankAccountControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Bank Account Fetched Successfully");
             assertThat(response.getBody().getData().getBankName()).isEqualTo("BCA");
         }
     }
@@ -135,6 +139,7 @@ class BankAccountControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getMessage()).isEqualTo("Bank Account Updated Successfully");
             assertThat(response.getBody().getData().getBankName()).isEqualTo("BNI");
         }
     }

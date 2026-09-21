@@ -289,7 +289,7 @@ class LoanDisbursementServiceImplTest {
             verify(pushNotificationService).sendToCustomer(
                     eq(customerId),
                     eq("Dana Kamu Sudah Cair! 🎉"),
-                    contains("25000000")
+                    contains("25.000.000")
             );
         }
 

@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.master.service.impl;
 
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateInternalUserRequest;
 import org.edwin.bekal.domain.master.dto.InternalUserResponse;
 import org.edwin.bekal.domain.master.dto.UpdateInternalUserRequest;
@@ -241,7 +242,7 @@ class InternalUserServiceImplTest {
 
             assertThatThrownBy(() -> internalUserService.updateInternalUser(userId, request))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("User not found");
+                    .hasMessageContaining("Internal User not found with ID: " + userId);
         }
 
         @Test
@@ -334,7 +335,7 @@ class InternalUserServiceImplTest {
 
             given(internalUserRepository.findByInternalUserIsActive(eq(true), any(Pageable.class))).willReturn(page);
 
-            Page<InternalUserResponse> result = internalUserService.getInternalUser(0, 10, true);
+            CacheablePage<InternalUserResponse> result = internalUserService.getInternalUser(0, 10, true);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
@@ -348,7 +349,7 @@ class InternalUserServiceImplTest {
 
             given(internalUserRepository.findByInternalUserIsActive(eq(false), any(Pageable.class))).willReturn(page);
 
-            Page<InternalUserResponse> result = internalUserService.getInternalUser(0, 10, false);
+            CacheablePage<InternalUserResponse> result = internalUserService.getInternalUser(0, 10, false);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
@@ -362,7 +363,7 @@ class InternalUserServiceImplTest {
 
             given(internalUserRepository.findAll(any(Pageable.class))).willReturn(page);
 
-            Page<InternalUserResponse> result = internalUserService.getInternalUser(0, 10, null);
+            CacheablePage<InternalUserResponse> result = internalUserService.getInternalUser(0, 10, null);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);

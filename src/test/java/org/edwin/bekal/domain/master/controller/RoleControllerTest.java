@@ -1,6 +1,7 @@
 package org.edwin.bekal.domain.master.controller;
 
 import org.edwin.bekal.common.dto.ApiResponse;
+import org.edwin.bekal.domain.application.dto.CacheablePage;
 import org.edwin.bekal.domain.master.dto.CreateRoleRequest;
 import org.edwin.bekal.domain.master.dto.RoleResponse;
 import org.edwin.bekal.domain.master.dto.UpdateRoleRequest;
@@ -12,8 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,13 +82,15 @@ class RoleControllerTest {
         @Test
         @DisplayName("Should return paginated roles successfully")
         void getRole_success() {
-            Page<RoleResponse> pageResponse = new PageImpl<>(List.of(
+            @SuppressWarnings("unchecked")
+            CacheablePage<RoleResponse> pageResponse = mock(CacheablePage.class);
+            given(pageResponse.getContent()).willReturn(List.of(
                     RoleResponse.builder().roleName("MANAGER").build()
             ));
 
             given(roleService.getRole(0, 10, true)).willReturn(pageResponse);
 
-            ResponseEntity<Page<RoleResponse>> response = roleController.getRole(0, 10, true);
+            ResponseEntity<CacheablePage<RoleResponse>> response = roleController.getRole(0, 10, true);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
