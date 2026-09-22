@@ -31,10 +31,6 @@ public class CustomerResponse {
 
     private String customerStatus;
 
-    private Instant customerEmailVerifiedAt;
-
-    private String customerDeviceToken;
-
     private Instant customerLastLoginAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jakarta")

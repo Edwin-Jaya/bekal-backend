@@ -7,6 +7,7 @@ import org.edwin.bekal.domain.customer.entity.Employment;
 import org.edwin.bekal.domain.customer.repository.CustomerRepository;
 import org.edwin.bekal.domain.customer.repository.DocumentRepository;
 import org.edwin.bekal.domain.customer.repository.EmploymentRepository;
+import org.edwin.bekal.enums.CustomerStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,11 +59,11 @@ class CustomerRollbackServiceImplTest {
         }
 
         @Test
-        @DisplayName("Should cancel rollback if customer email is already verified")
+        @DisplayName("Should cancel rollback if customer status is already ACTIVE")
         void rollback_customerVerified_cancelsRollback() {
             UUID customerId = UUID.randomUUID();
             Customer customer = new Customer();
-            customer.setCustomerEmailVerifiedAt(Instant.now());
+            customer.setCustomerStatus(CustomerStatus.ACTIVE);
 
             given(customerRepository.findById(customerId)).willReturn(Optional.of(customer));
 
@@ -78,7 +78,7 @@ class CustomerRollbackServiceImplTest {
         void rollback_success() {
             UUID customerId = UUID.randomUUID();
             Customer customer = new Customer();
-            customer.setCustomerEmailVerifiedAt(null);
+            customer.setCustomerStatus(CustomerStatus.INACTIVE); // Status belum/tidak ACTIVE
 
             Document doc1 = new Document();
             doc1.setFileUrl("file1.png");
@@ -106,6 +106,7 @@ class CustomerRollbackServiceImplTest {
         void rollback_fileDeletionFails_continuesRollback() {
             UUID customerId = UUID.randomUUID();
             Customer customer = new Customer();
+            customer.setCustomerStatus(CustomerStatus.INACTIVE); // Status belum/tidak ACTIVE
 
             Document doc = new Document();
             doc.setFileUrl("file1.png");

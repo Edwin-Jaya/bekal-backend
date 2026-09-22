@@ -114,11 +114,9 @@ class DocumentServiceImplTest {
         void updateDocument_success() {
             UUID documentId = UUID.randomUUID();
             UpdateDocumentRequest request = new UpdateDocumentRequest();
-            request.setStatus("VERIFIED");
 
             Document document = new Document();
             document.setId(documentId);
-            document.setStatus("PENDING");
 
             given(documentRepository.findById(documentId)).willReturn(Optional.of(document));
             given(documentRepository.save(any(Document.class))).willAnswer(inv -> inv.getArgument(0));
@@ -126,7 +124,6 @@ class DocumentServiceImplTest {
             DocumentResponse response = documentService.updateDocument(documentId, request);
 
             assertThat(response).isNotNull();
-            assertThat(response.getStatus()).isEqualTo("VERIFIED");
         }
 
         @Test

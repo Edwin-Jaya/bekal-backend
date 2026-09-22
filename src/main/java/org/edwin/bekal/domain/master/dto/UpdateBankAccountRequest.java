@@ -18,7 +18,5 @@ public class UpdateBankAccountRequest {
     private String bankAccountHolder;
 
     private Boolean isPrimary;
-    private Boolean isVerified;
-    private Instant verifiedAt;
     private String status;
 }

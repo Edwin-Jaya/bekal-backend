@@ -46,7 +46,6 @@ public class LoanReviewDetailMapper {
                 .id(d.getId())
                 .documentType(d.getDocumentType())
                 .fileUrl(d.getFileUrl())
-                .status(d.getStatus())
                 .isLatest(d.getIsLatest())
                 .build();
     }

@@ -39,10 +39,7 @@ public class DocumentServiceImpl implements DocumentService {
         document.setCustomer(customer);
         document.setDocumentType(request.getDocumentType());
         document.setFileUrl(request.getFileUrl() != null ? request.getFileUrl() : "");
-        document.setFileHash(null);
-        document.setStatus("pending");
         document.setIsLatest(true);
-        document.setUploadedAt(Instant.now());
 
         Document saved = documentRepository.save(document);
         return mapToResponse(saved);
@@ -68,10 +65,7 @@ public class DocumentServiceImpl implements DocumentService {
         document.setCustomer(customer);
         document.setDocumentType(documentType);
         document.setFileUrl(storedFileUrl);
-        document.setFileHash(null);
-        document.setStatus("pending");
         document.setIsLatest(true);
-        document.setUploadedAt(Instant.now());
 
         Document saved = documentRepository.save(document);
         return mapToResponse(saved);
@@ -84,16 +78,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         if (request.getDocumentType() != null) document.setDocumentType(request.getDocumentType());
         if (request.getFileUrl() != null) document.setFileUrl(request.getFileUrl());
-        if (request.getFileHash() != null) document.setFileHash(request.getFileHash());
-        if (request.getStatus() != null) document.setStatus(request.getStatus());
-        if (request.getRejectionReason() != null) document.setRejectionReason(request.getRejectionReason());
         if (request.getIsLatest() != null) document.setIsLatest(request.getIsLatest());
-        if (request.getVerifiedAt() != null) document.setVerifiedAt(request.getVerifiedAt());
-
-        if (request.getVerifiedById() != null) {
-            internalUserRepository.findById(request.getVerifiedById())
-                    .ifPresent(document::setVerifiedBy);
-        }
 
         Document updated = documentRepository.save(document);
         return mapToResponse(updated);
@@ -114,13 +99,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .customerId(document.getCustomer() != null ? document.getCustomer().getId() : null)
                 .documentType(document.getDocumentType())
                 .fileUrl(document.getFileUrl())
-                .fileHash(document.getFileHash())
-                .status(document.getStatus())
-                .verifiedById(document.getVerifiedBy() != null ? document.getVerifiedBy().getId() : null)
-                .verifiedAt(document.getVerifiedAt())
-                .rejectionReason(document.getRejectionReason())
                 .isLatest(document.getIsLatest())
-                .uploadedAt(document.getUploadedAt())
                 .createdAt(document.getCreatedAt())
                 .updatedAt(document.getUpdatedAt())
                 .build();

@@ -37,37 +37,8 @@ public class Document extends BaseFullEntity {
     @Column(name = "file_url", nullable = false, length = 500)
     private String fileUrl;
 
-    @Size(max = 64)
-    @Nationalized
-    @Column(name = "file_hash", length = 64)
-    private String fileHash;
-
-    @Size(max = 20)
-    @NotNull
-    @Nationalized
-    @ColumnDefault("'pending'")
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "verified_by")
-    private InternalUser verifiedBy;
-
-    @Column(name = "verified_at")
-    private Instant verifiedAt;
-
-    @Size(max = 255)
-    @Nationalized
-    @Column(name = "rejection_reason")
-    private String rejectionReason;
-
     @NotNull
     @ColumnDefault("1")
     @Column(name = "is_latest", nullable = false)
     private Boolean isLatest;
-
-    @NotNull
-    @ColumnDefault("sysutcdatetime()")
-    @Column(name = "uploaded_at", nullable = false)
-    private Instant uploadedAt;
 }

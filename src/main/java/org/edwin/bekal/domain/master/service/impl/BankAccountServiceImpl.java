@@ -38,7 +38,6 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccount.setBankAccountNumber(request.getBankAccountNumber());
         bankAccount.setBankAccountHolder(request.getBankAccountHolder());
         bankAccount.setIsPrimary(request.getIsPrimary() != null ? request.getIsPrimary() : false);
-        bankAccount.setIsVerified(false);
         bankAccount.setStatus("active");
 
         BankAccount savedAccount = bankAccountRepository.save(bankAccount);
@@ -89,8 +88,6 @@ public class BankAccountServiceImpl implements BankAccountService {
         if (request.getBankAccountNumber() != null) bankAccount.setBankAccountNumber(request.getBankAccountNumber());
         if (request.getBankAccountHolder() != null) bankAccount.setBankAccountHolder(request.getBankAccountHolder());
         if (request.getIsPrimary() != null) bankAccount.setIsPrimary(request.getIsPrimary());
-        if (request.getIsVerified() != null) bankAccount.setIsVerified(request.getIsVerified());
-        if (request.getVerifiedAt() != null) bankAccount.setVerifiedAt(request.getVerifiedAt());
         if (request.getStatus() != null) bankAccount.setStatus(request.getStatus());
 
         BankAccount updatedAccount = bankAccountRepository.save(bankAccount);
@@ -115,8 +112,6 @@ public class BankAccountServiceImpl implements BankAccountService {
                 .bankAccountNumber(account.getBankAccountNumber())
                 .bankAccountHolder(account.getBankAccountHolder())
                 .isPrimary(account.getIsPrimary())
-                .isVerified(account.getIsVerified())
-                .verifiedAt(account.getVerifiedAt())
                 .status(account.getStatus())
                 .createdAt(account.getCreatedAt())
                 .updatedAt(account.getUpdatedAt())

@@ -70,7 +70,6 @@ class BankAccountServiceImplTest {
             assertThat(response.getBankName()).isEqualTo("BCA");
             assertThat(response.getBankAccountNumber()).isEqualTo("123456789");
             assertThat(response.getIsPrimary()).isTrue();
-            assertThat(response.getIsVerified()).isFalse();
             assertThat(response.getStatus()).isEqualTo("active");
         }
 
@@ -211,8 +210,6 @@ class BankAccountServiceImplTest {
             request.setBankAccountNumber("987654321");
             request.setBankAccountHolder("New Holder");
             request.setIsPrimary(true);
-            request.setIsVerified(true);
-            request.setVerifiedAt(now);
             request.setStatus("inactive");
 
             BankAccount existing = new BankAccount();
@@ -230,8 +227,6 @@ class BankAccountServiceImplTest {
             assertThat(response.getBankAccountNumber()).isEqualTo("987654321");
             assertThat(response.getBankAccountHolder()).isEqualTo("New Holder");
             assertThat(response.getIsPrimary()).isTrue();
-            assertThat(response.getIsVerified()).isTrue();
-            assertThat(response.getVerifiedAt()).isEqualTo(now);
             assertThat(response.getStatus()).isEqualTo("inactive");
         }
 

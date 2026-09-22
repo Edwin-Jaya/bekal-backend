@@ -9,6 +9,7 @@ import org.edwin.bekal.domain.customer.repository.CustomerRepository;
 import org.edwin.bekal.domain.customer.repository.DocumentRepository;
 import org.edwin.bekal.domain.customer.repository.EmploymentRepository;
 import org.edwin.bekal.domain.customer.service.CustomerRollbackService;
+import org.edwin.bekal.enums.CustomerStatus; // Import enum CustomerStatus
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,10 +35,10 @@ public class CustomerRollbackServiceImpl implements CustomerRollbackService {
             return;
         }
 
-        // Guard: JANGAN hapus akun yang sudah terverifikasi/aktif dipakai.
-        // Rollback hanya untuk sisa registrasi yang gagal di tengah jalan.
-        if (customer.getCustomerEmailVerifiedAt() != null) {
-            log.warn("Rollback dibatalkan - customerId={} sudah terverifikasi, bukan registrasi gagal", customerId);
+        // Cek jika status customer sudah VERIFIED / ACTIVE (batalkan rollback)
+        if (CustomerStatus.ACTIVE.equals(customer.getCustomerStatus())) {
+            log.info("Rollback dibatalkan karena customerId={} sudah terverifikasi (status={})",
+                    customerId, customer.getCustomerStatus());
             return;
         }
 
@@ -46,7 +47,6 @@ public class CustomerRollbackServiceImpl implements CustomerRollbackService {
             try {
                 fileStorageService.deleteFile(doc.getFileUrl());
             } catch (Exception e) {
-                // File fisik gagal dihapus tidak boleh menggagalkan rollback data DB.
                 log.warn("Gagal hapus file fisik saat rollback: {}", doc.getFileUrl(), e);
             }
         }

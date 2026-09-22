@@ -101,15 +101,19 @@ class DocumentControllerTest {
         void updateDocument_success() {
             UUID id = UUID.randomUUID();
             UpdateDocumentRequest request = new UpdateDocumentRequest();
-            DocumentResponse responseDto = DocumentResponse.builder().id(id).status("VERIFIED").build();
+            DocumentResponse responseDto = DocumentResponse.builder()
+                    .id(id)
+                    .documentType("KTP_UPDATED")
+                    .build();
 
             given(documentService.updateDocument(id, request)).willReturn(responseDto);
 
             ResponseEntity<ApiResponse<DocumentResponse>> response = documentController.updateDocument(id, request);
 
+            // Ubah dari HttpStatus.OK menjadi HttpStatus.CREATED
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getData().getStatus()).isEqualTo("VERIFIED");
+            assertThat(response.getBody().getData().getDocumentType()).isEqualTo("KTP_UPDATED");
         }
 
         @Test

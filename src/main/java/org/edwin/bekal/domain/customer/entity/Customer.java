@@ -51,12 +51,6 @@ public class Customer extends BaseFullEntity {
     @Column(name="status", length = 20)
     private CustomerStatus customerStatus=CustomerStatus.ACTIVE;
 
-    @Column(name="email_verified_at")
-    private Instant customerEmailVerifiedAt;
-
-    @Column(name="device_token", length=255)
-    private String customerDeviceToken;
-
     @Column(name="last_login_at")
     private Instant customerLastLoginAt;
 

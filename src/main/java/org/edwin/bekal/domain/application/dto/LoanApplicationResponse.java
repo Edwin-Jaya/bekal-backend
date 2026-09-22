@@ -2,6 +2,7 @@ package org.edwin.bekal.domain.application.dto;
 
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
 
 import jakarta.validation.constraints.Size;
@@ -47,15 +48,15 @@ public class LoanApplicationResponse implements Serializable {
     @Size(max = 30)
 
     String applicationNumber;
-
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     Branch branch;
 
     @NotNull
-
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     Customer customer;
 
     @NotNull
-
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     Plafond plafond;
 
     @NotNull
@@ -87,9 +88,9 @@ public class LoanApplicationResponse implements Serializable {
     @Size(max = 20)
 
     String status;
-
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     InternalUser assignedMarketing;
-
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     InternalUser assignedBranchManager;
 
     @NotNull

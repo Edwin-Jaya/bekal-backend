@@ -7,6 +7,8 @@ import org.edwin.bekal.domain.customer.entity.Customer;
 import org.edwin.bekal.domain.customer.entity.Employment;
 import org.edwin.bekal.domain.customer.repository.CustomerRepository;
 import org.edwin.bekal.domain.customer.repository.EmploymentRepository;
+import org.edwin.bekal.domain.master.entity.InternalUser;
+import org.edwin.bekal.domain.master.repository.InternalUserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,8 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,7 +37,7 @@ class EmploymentServiceImplTest {
     private EmploymentRepository employmentRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private InternalUserRepository internalUserRepository;
 
     @InjectMocks
     private EmploymentServiceImpl employmentService;
@@ -65,6 +67,36 @@ class EmploymentServiceImplTest {
             assertThat(response.getCustomerCompanyName()).isEqualTo("PT Bekal Mandiri");
             assertThat(response.getCustomerJobTitle()).isEqualTo("Software Engineer");
             assertThat(response.getCustomerIsCurrent()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should create employment with income verification when verifier ID is provided")
+        void createEmployment_withVerification_success() {
+            UUID customerId = UUID.randomUUID();
+            UUID verifierId = UUID.randomUUID();
+            BigDecimal verifiedIncome = new BigDecimal("15000000");
+
+            CreateEmploymentRequest request = new CreateEmploymentRequest();
+            request.setCustomer(customerId);
+            request.setIncomeVerifiedById(verifierId);
+            request.setCustomerVerifiedIncome(verifiedIncome);
+
+            Customer customer = new Customer();
+            customer.setId(customerId);
+
+            InternalUser verifier = new InternalUser();
+            verifier.setId(verifierId);
+
+            given(customerRepository.findById(customerId)).willReturn(Optional.of(customer));
+            given(internalUserRepository.findById(verifierId)).willReturn(Optional.of(verifier));
+            given(employmentRepository.saveAndFlush(any(Employment.class))).willAnswer(inv -> inv.getArgument(0));
+
+            EmploymentResponse response = employmentService.createEmployment(request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getCustomerVerifiedIncome()).isEqualTo(verifiedIncome);
+            assertThat(response.getInternalUser()).isEqualTo(verifier);
+            assertThat(response.getCustomerIncomeVerifiedAt()).isNotNull();
         }
 
         @Test
@@ -118,7 +150,7 @@ class EmploymentServiceImplTest {
 
             assertThatThrownBy(() -> employmentService.updateEmployment(employmentId, request))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Employment not found with ID" + employmentId);
+                    .hasMessageContaining("Employment not found with ID: " + employmentId);
         }
     }
 
@@ -150,7 +182,7 @@ class EmploymentServiceImplTest {
 
             assertThatThrownBy(() -> employmentService.deleteEmployment(employmentId))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Employment not found with ID" + employmentId);
+                    .hasMessageContaining("Employment not found with ID: " + employmentId);
         }
     }
 

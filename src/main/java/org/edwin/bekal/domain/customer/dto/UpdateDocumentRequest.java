@@ -16,17 +16,5 @@ public class UpdateDocumentRequest implements Serializable {
     @Size(max = 500)
     private String fileUrl;
 
-    @Size(max = 64)
-    private String fileHash;
-
-    @Size(max = 20)
-    private String status;
-
-    private UUID verifiedById;
-    private Instant verifiedAt;
-
-    @Size(max = 255)
-    private String rejectionReason;
-
     private Boolean isLatest;
 }

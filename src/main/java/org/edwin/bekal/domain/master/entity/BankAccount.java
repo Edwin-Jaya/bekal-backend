@@ -46,14 +46,6 @@ public class BankAccount extends BaseFullEntity {
     @Column(name = "is_primary", nullable = false)
     private Boolean isPrimary;
 
-    @NotNull
-    @ColumnDefault("0")
-    @Column(name = "is_verified", nullable = false)
-    private Boolean isVerified;
-
-    @Column(name = "verified_at")
-    private Instant verifiedAt;
-
     @Size(max = 20)
     @NotNull
     @Nationalized

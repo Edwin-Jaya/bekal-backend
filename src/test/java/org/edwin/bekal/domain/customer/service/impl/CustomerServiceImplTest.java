@@ -135,7 +135,6 @@ class CustomerServiceImplTest {
             JwtResponse response = customerService.loginCustomer(request);
 
             assertThat(response.getToken()).isEqualTo("jwt-token");
-            assertThat(customer.getCustomerDeviceToken()).isEqualTo("device-xyz");
             assertThat(customer.getCustomerLastLoginAt()).isNotNull();
         }
 

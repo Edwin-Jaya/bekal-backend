@@ -85,9 +85,6 @@ public class CustomerServiceImpl implements CustomerService {
             throw new IllegalArgumentException("Email atau kata sandi salah");
         }
 
-        if (request.getDeviceToken() != null) {
-            customer.setCustomerDeviceToken(request.getDeviceToken());
-        }
         customer.setCustomerLastLoginAt(Instant.now());
 
         String jwt = tokenProvider.generateTokenForCustomer(customer);

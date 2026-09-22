@@ -20,8 +20,6 @@ public class BankAccountResponse {
     private String bankAccountNumber;
     private String bankAccountHolder;
     private Boolean isPrimary;
-    private Boolean isVerified;
-    private Instant verifiedAt;
     private String status;
     private Instant createdAt;
     private Instant updatedAt;
