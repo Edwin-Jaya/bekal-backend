@@ -13,8 +13,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +79,7 @@ public class BranchServiceImpl implements BranchService {
     public List<BranchResponse> getAllBranches() {
         return branchRepository.findAll().stream()
                 .map(this::mapToResponse)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public BranchResponse mapToResponse(Branch branch) {

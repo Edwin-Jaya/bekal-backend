@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.application.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 @Setter
 @Entity
 @Table(name = "TRX_PLAFONDS", schema = "dbo")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Plafond extends BaseEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

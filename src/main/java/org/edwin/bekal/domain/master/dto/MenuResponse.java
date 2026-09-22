@@ -3,9 +3,7 @@ package org.edwin.bekal.domain.master.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Value;
+import lombok.*;
 import org.edwin.bekal.domain.master.entity.Menu;
 
 import java.io.Serializable;
@@ -17,6 +15,8 @@ import java.util.UUID;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MenuResponse implements Serializable {
     UUID id;
     Menu menuParent;

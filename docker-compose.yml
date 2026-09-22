@@ -14,7 +14,11 @@ services:
     ports:
       - "1433:1433"
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'P@ssw0rd' -Q 'SELECT 1' -C || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'P@ssw0rd' -Q 'SELECT 1' -C || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -31,6 +35,7 @@ services:
       - MSSQL_SA_PASSWORD=P@ssw0rd
     volumes:
       - ./init-db.sh:/init-db.sh
+      - ./script.sql:/script.sql
     entrypoint: ["/bin/bash", "/init-db.sh"]
 
   app:
@@ -44,4 +49,4 @@ services:
       redis:
         condition: service_started
       sqlserver-init:
-        condition: service_completed_successfully  # waits for init to finish
+        condition: service_completed_successfully # waits for init to finish

@@ -48,15 +48,12 @@ public class LoanApplicationResponse implements Serializable {
     @Size(max = 30)
 
     String applicationNumber;
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     Branch branch;
 
     @NotNull
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     Customer customer;
 
     @NotNull
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     Plafond plafond;
 
     @NotNull
@@ -88,9 +85,8 @@ public class LoanApplicationResponse implements Serializable {
     @Size(max = 20)
 
     String status;
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     InternalUser assignedMarketing;
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+
     InternalUser assignedBranchManager;
 
     @NotNull

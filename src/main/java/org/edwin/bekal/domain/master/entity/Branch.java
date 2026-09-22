@@ -11,23 +11,23 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Setter
 @Entity
-@Table(name="MST_BRANCHES", schema = "dbo")
+@Table(name = "MST_BRANCHES", schema = "dbo")
 @EntityListeners(AuditingEntityListener.class)
 public class Branch extends BaseAuditEntity {
-    @Column(name="code", length = 20)
+    @Column(name = "code", length = 20)
     private String branchCode;
 
-    @Column(name="name", length = 100)
+    @Column(name = "name", length = 100)
     private String branchName;
 
     @Nationalized
-    @Column(name="address", length = 100)
+    @Column(name = "address", length = 100)
     private String branchAddress;
 
-    @Column(name="city", length=100)
+    @Column(name = "city", length = 100)
     private String branchCity;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="status", length = 20)
+    @Column(name = "status", length = 20)
     private BranchStatus branchStatus = BranchStatus.ACTIVE;
 }

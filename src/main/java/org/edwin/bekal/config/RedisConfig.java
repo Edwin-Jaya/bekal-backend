@@ -27,6 +27,7 @@ public class RedisConfig {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         return mapper;
     }
 
@@ -86,11 +87,12 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        var keySerializer = new StringRedisSerializer();
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(keySerializer);
+        template.setKeySerializer(keySerializer);
         template.setValueSerializer(redisValueSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(redisValueSerializer());
         template.afterPropertiesSet();
         return template;

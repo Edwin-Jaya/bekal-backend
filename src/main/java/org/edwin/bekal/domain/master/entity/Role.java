@@ -13,18 +13,18 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Getter
 @Setter
-@Table(name="MST_ROLES", schema="dbo")
+@Table(name = "MST_ROLES", schema = "dbo")
 @EntityListeners(AuditingEntityListener.class)
 public class Role extends BaseAuditEntity {
     //name, description, isactive(bit)
-    @Column(name="name", length = 50)
+    @Column(name = "name", length = 50)
     private String roleName;
 
     @Nationalized
-    @Column(name="description", length = 255)
+    @Column(name = "description", length = 255)
     private String roleDescription;
 
-    @Column(name="is_active")
-    private Boolean roleIsActive=true;
+    @Column(name = "is_active")
+    private Boolean roleIsActive = true;
 
 }

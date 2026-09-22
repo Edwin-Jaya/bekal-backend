@@ -15,8 +15,10 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +52,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     public List<BankAccountResponse> getAllBankAccounts() {
         return bankAccountRepository.findAll().stream()
                 .map(this::mapToResponse)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override

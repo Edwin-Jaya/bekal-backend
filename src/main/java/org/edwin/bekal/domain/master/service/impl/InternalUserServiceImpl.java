@@ -181,10 +181,10 @@ public class InternalUserServiceImpl implements InternalUserService {
     }
 
     public InternalUserResponse mapToResponse(InternalUser user) {
-        return InternalUserResponse.builder()
+        // get user all
+        // each user item will get role by query
+        var result = InternalUserResponse.builder()
                 .id(user.getId())
-                .branch(user.getBranch())
-                .role(user.getRole())
                 .internalUserEmployeeCode(user.getInternalUserEmployeeCode())
                 .internalUserFullName(user.getInternalUserFullName())
                 .internalUserEmail(user.getInternalUserEmail())
@@ -193,7 +193,28 @@ public class InternalUserServiceImpl implements InternalUserService {
                 .internalUserIsActive(user.getInternalUserIsActive() != null ? user.getInternalUserIsActive() : true)
                 .internalUserLastLoginAt(user.getInternalUserLastLoginAt())
                 .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
+                .updatedAt(user.getUpdatedAt());
+
+        if (user.getRole() != null) {
+            result = result.role(RoleResponse.builder()
+                    .id(user.getRole().getId())
+                    .roleName(user.getRole().getRoleName())
+                    .roleDescription(user.getRole().getRoleDescription())
+                    .roleIsActive(user.getRole().getRoleIsActive())
+                    .build());
+        }
+
+        if (user.getBranch() != null) {
+            result = result.branch(BranchResponse.builder()
+                    .id(user.getBranch().getId())
+                    .branchCode(user.getBranch().getBranchCode())
+                    .branchName(user.getBranch().getBranchName())
+                    .branchAddress(user.getBranch().getBranchAddress())
+                    .branchCity(user.getBranch().getBranchCity())
+                    .branchStatus(user.getBranch().getBranchStatus().toString())
+                    .build());
+        }
+
+        return result.build();
     }
 }

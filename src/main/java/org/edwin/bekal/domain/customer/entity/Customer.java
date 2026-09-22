@@ -1,5 +1,6 @@
 package org.edwin.bekal.domain.customer.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ import java.util.Date;
 @Setter
 @Table(name="MST_CUSTOMERS", schema="dbo")
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Customer extends BaseFullEntity {
 
     @Column(name="full_name", length = 150)
