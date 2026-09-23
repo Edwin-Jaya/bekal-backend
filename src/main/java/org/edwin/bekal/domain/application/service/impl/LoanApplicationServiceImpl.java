@@ -27,9 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.edwin.bekal.common.util.LoanApplicationMapper.*;
 
 @Service
 @RequiredArgsConstructor
@@ -163,14 +164,13 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private String generateApplicationNumber() {
         return "APP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
-
     public LoanApplicationResponse mapToResponse(LoanApplication res) {
         return LoanApplicationResponse.builder()
                 .id(res.getId())
                 .applicationNumber(res.getApplicationNumber())
-                .branch(res.getBranch())
-                .customer(res.getCustomer())
-                .plafond(res.getPlafond())
+                .branch(mapToBranchResponse(res.getBranch()))
+                .customer(mapToCustomerResponse(res.getCustomer()))
+                .plafond(mapToPlafondResponse(res.getPlafond()))
                 .amountRequested(res.getAmountRequested())
                 .tenorMonths(res.getTenorMonths())
                 .purpose(res.getPurpose())
@@ -178,8 +178,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 .monthlyInstallment(res.getMonthlyInstallment())
                 .totalRepayment(res.getTotalRepayment())
                 .status(res.getStatus())
-                .assignedMarketing(res.getAssignedMarketing())
-                .assignedBranchManager(res.getAssignedBranchManager())
+                .assignedMarketing(mapToInternalUserResponse(res.getAssignedMarketing()))
+                .assignedBranchManager(mapToInternalUserResponse(res.getAssignedBranchManager()))
                 .submittedAt(res.getSubmittedAt())
                 .build();
     }

@@ -20,6 +20,7 @@ upload/
 *.iml
 *.ipr
 .env
+.env.local
 *.env
 src/main/resources/firebase/firebase-credentials*.json
 github-actions-key*

@@ -1,38 +1,20 @@
 package org.edwin.bekal.domain.application.dto;
 
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
-
 import jakarta.validation.constraints.Size;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-
 import lombok.Data;
-
 import lombok.NoArgsConstructor;
-import org.edwin.bekal.domain.application.entity.Plafond;
-
-import org.edwin.bekal.domain.customer.entity.Customer;
-
-import org.edwin.bekal.domain.master.entity.Branch;
-
-import org.edwin.bekal.domain.master.entity.InternalUser;
-
-
+import org.edwin.bekal.domain.customer.dto.CustomerResponse;
+import org.edwin.bekal.domain.master.dto.BranchResponse;
+import org.edwin.bekal.domain.master.dto.InternalUserResponse;
 
 import java.io.Serializable;
-
 import java.math.BigDecimal;
-
 import java.time.Instant;
-
 import java.util.UUID;
-
-
-
 
 
 @Data
@@ -48,13 +30,13 @@ public class LoanApplicationResponse implements Serializable {
     @Size(max = 30)
 
     String applicationNumber;
-    Branch branch;
+    BranchResponse branch;
 
     @NotNull
-    Customer customer;
+    CustomerResponse customer;
 
     @NotNull
-    Plafond plafond;
+    PlafondResponse plafond;
 
     @NotNull
 
@@ -85,9 +67,9 @@ public class LoanApplicationResponse implements Serializable {
     @Size(max = 20)
 
     String status;
-    InternalUser assignedMarketing;
+    InternalUserResponse assignedMarketing;
 
-    InternalUser assignedBranchManager;
+    InternalUserResponse assignedBranchManager;
 
     @NotNull
 

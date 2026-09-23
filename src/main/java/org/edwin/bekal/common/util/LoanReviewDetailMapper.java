@@ -55,7 +55,7 @@ public class LoanReviewDetailMapper {
                 .id(la.getId())
                 .applicationNumber(la.getApplicationNumber())
                 .status(la.getStatus())
-                .branch(la.getBranch())
+                .branch(LoanApplicationMapper.mapToBranchResponse(la.getBranch()))
                 .amountRequested(la.getAmountRequested())
                 .tenorMonths(la.getTenorMonths())
                 .interestRate(la.getInterestRate())
