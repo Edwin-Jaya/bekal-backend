@@ -78,13 +78,13 @@ jobs:
           key: ${{ secrets.GCP_SSH_KEY }}
           script: mkdir -p ~/bekal
 
-      - name: Copy docker-compose.yml to GCP VM
+      - name: Copy deployment files to GCP VM
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.yml,init-db.sh,script.sql"
           target: "~/bekal"
 
       - name: Deploy and restart container on GCP VM
@@ -125,6 +125,9 @@ jobs:
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
 
+            # ─── Firebase
+            FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON || '' }}
+
             # ─── App Configurations
             JPA_DDL_AUTO=${{ secrets.JPA_DDL_AUTO || 'none' }}
             JPA_SHOW_SQL=${{ secrets.JPA_SHOW_SQL || 'true' }}
@@ -137,6 +140,22 @@ jobs:
               echo "✅ .env mapped from individual secrets and default fallbacks."
             fi
             chmod 600 .env
+
+            # ─── Eksekusi Service Non-App (redis, sqlserver, sqlserver-init) ───
+            # Dijalankan hanya 1x jika container belum pernah up / dibuat sama sekali
+            echo "🔍 Memeriksa status container pendukung (redis, sqlserver, sqlserver-init)..."
+            if [ -z "$(docker ps -a -q -f name=^bekal-sqlserver$)" ] || [ -z "$(docker ps -a -q -f name=^bekal-redis$)" ] || [ -z "$(docker ps -a -q -f name=^bekal-sqlserver-init$)" ]; then
+              echo "🆕 Container belum pernah up sama sekali. Menjalankan 3 service pendukung..."
+              sed -i 's/\r$//' init-db.sh 2>/dev/null || true
+              chmod +x init-db.sh 2>/dev/null || true
+              docker compose up -d redis sqlserver
+              echo "⏳ Menjalankan sqlserver-init (menunggu sqlserver siap & eksekusi script.sql)..."
+              docker compose up sqlserver-init
+              echo "✅ Service redis, sqlserver, dan sqlserver-init berhasil diinisialisasi!"
+            else
+              echo "♻️ Service pendukung sudah pernah up sebelumnya. Memastikan redis dan sqlserver tetap aktif..."
+              docker compose up -d redis sqlserver
+            fi
 
             echo "🔑 Logging in to GHCR..."
             echo "${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
