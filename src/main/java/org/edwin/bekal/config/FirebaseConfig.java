@@ -21,6 +21,7 @@ public class FirebaseConfig {
     @Value("${firebase.service-account-file:#{null}}")
     private String firebaseJson;
 
+
     @PostConstruct
     public void initialize() {
         try {
