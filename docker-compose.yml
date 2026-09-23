@@ -46,8 +46,11 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    volumes:
+      - ./uploads:/app/uploads
     depends_on:
       redis:
         condition: service_started
       sqlserver-init:
         condition: service_completed_successfully # waits for init to finish
+

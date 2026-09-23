@@ -76,7 +76,9 @@ jobs:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_KEY }}
-          script: mkdir -p ~/bekal
+          script: |
+            mkdir -p ~/bekal/uploads
+            chmod 777 ~/bekal/uploads
 
       - name: Copy deployment files to GCP VM
         uses: appleboy/scp-action@v0.1.7
@@ -96,6 +98,10 @@ jobs:
           script: |
             set -e
             cd ~/bekal
+
+            echo "📁 Ensuring uploads directory exists..."
+            mkdir -p uploads
+            chmod -R 777 uploads 2>/dev/null || chmod 777 uploads
 
             echo "⚙️ Configuring environment (.env)..."
             if [ -n "${{ secrets.ENV_FILE }}" ]; then
