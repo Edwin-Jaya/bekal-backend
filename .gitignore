@@ -3,7 +3,8 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-
+upload/
+*.class
 ### STS ###
 .apt_generated
 .classpath
@@ -21,6 +22,10 @@ target/
 .env
 *.env
 src/main/resources/firebase/firebase-credentials*.json
+github-actions-key*
+*.pem
+*.key
+*.pub
 
 ### NetBeans ###
 /nbproject/private/

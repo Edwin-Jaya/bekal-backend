@@ -39,6 +39,7 @@ services:
     entrypoint: ["/bin/bash", "/init-db.sh"]
 
   app:
+    image: ghcr.io/edwin-jaya/bekal-backend:latest
     build: .
     container_name: bekal-api
     ports:
