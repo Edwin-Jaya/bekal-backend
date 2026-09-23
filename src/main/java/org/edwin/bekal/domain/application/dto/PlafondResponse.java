@@ -1,15 +1,11 @@
 package org.edwin.bekal.domain.application.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
-
-import lombok.Builder;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -18,6 +14,8 @@ import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlafondResponse implements Serializable {
     UUID id;
     BigDecimal plafondAmount;
