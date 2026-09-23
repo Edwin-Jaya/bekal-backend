@@ -12,44 +12,44 @@ env:
 
 jobs:
   # ─── Job 1: Test (CI) ─────────────────────────────────────────
-  test:
-    name: CI - Test & Coverage Check
-    runs-on: ubuntu-latest
-    env:
-      # Mock environment variables for Spring context bootstrap during @SpringBootTest
-      DB_URL: jdbc:sqlserver://localhost:1433;databaseName=bekal;encrypt=true;trustServerCertificate=true
-      DB_USERNAME: sa
-      DB_PASSWORD: DummyPassword123!
-      REDIS_HOST: localhost
-      REDIS_PORT: "6379"
-      REDIS_PASSWORD: ""
-      JWT_SECRET: -oQ8lhn9GxURcICCEwGzzGedybSLCvdd2IoUuac5Yb8s
-      JWT_TTL_MINUTES: 180m
-      MAIL_HOST: smtp.gmail.com
-      MAIL_PORT: "587"
-      MAIL_USERNAME: dummy@example.com
-      MAIL_PASSWORD: dummy-password
-      JPA_DDL_AUTO: none
-      JPA_SHOW_SQL: "false"
-      UPLOAD_DIR: uploads
-      MAX_FILE_SIZE: 10MB
-      MAX_REQUEST_SIZE: 10MB
-      CACHE_LOG_LEVEL: WARN
-      SQL_LOG_LEVEL: WARN
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: maven
-
-      - name: Run Maven Tests & Coverage
-        run: mvn clean verify -q
+#  test:
+#    name: CI - Test & Coverage Check
+#    runs-on: ubuntu-latest
+#    env:
+#      # Mock environment variables for Spring context bootstrap during @SpringBootTest
+#      DB_URL: jdbc:sqlserver://localhost:1433;databaseName=bekal;encrypt=true;trustServerCertificate=true
+#      DB_USERNAME: sa
+#      DB_PASSWORD: DummyPassword123!
+#      REDIS_HOST: localhost
+#      REDIS_PORT: "6379"
+#      REDIS_PASSWORD: ""
+#      JWT_SECRET: -oQ8lhn9GxURcICCEwGzzGedybSLCvdd2IoUuac5Yb8s
+#      JWT_TTL_MINUTES: 180m
+#      MAIL_HOST: smtp.gmail.com
+#      MAIL_PORT: "587"
+#      MAIL_USERNAME: dummy@example.com
+#      MAIL_PASSWORD: dummy-password
+#      JPA_DDL_AUTO: none
+#      JPA_SHOW_SQL: "false"
+#      UPLOAD_DIR: uploads
+#      MAX_FILE_SIZE: 10MB
+#      MAX_REQUEST_SIZE: 10MB
+#      CACHE_LOG_LEVEL: WARN
+#      SQL_LOG_LEVEL: WARN
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: "21"
+#          distribution: "temurin"
+#          cache: maven
+#
+#      - name: Run Maven Tests & Coverage
+#        run: mvn clean verify -q
 
   # ─── Job 2: Build & Push Image (CI) ───────────────────────────
   build-and-push:

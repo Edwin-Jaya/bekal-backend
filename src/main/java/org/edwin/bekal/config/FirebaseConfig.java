@@ -32,7 +32,7 @@ public class FirebaseConfig {
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setHttpTransport(new NetHttpTransport()) 
+                    .setHttpTransport(new NetHttpTransport())
                     .setConnectTimeout(30000)
                     .setReadTimeout(30000)
                     .build();
