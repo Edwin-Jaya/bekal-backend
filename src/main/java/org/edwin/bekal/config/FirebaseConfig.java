@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Configuration
 public class FirebaseConfig {
@@ -25,7 +26,8 @@ public class FirebaseConfig {
         try {
             InputStream serviceAccount;
             if (firebaseJson != null && !firebaseJson.isBlank()) {
-                serviceAccount = new ByteArrayInputStream(firebaseJson.getBytes(StandardCharsets.UTF_8));
+                String json = decodeCredentials(firebaseJson.trim());
+                serviceAccount = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
             } else {
                 serviceAccount = new ClassPathResource("firebase/firebase-credentials.json").getInputStream();
             }
@@ -43,5 +45,18 @@ public class FirebaseConfig {
         } catch (IOException e) {
             throw new RuntimeException("Gagal inisialisasi Firebase Admin SDK", e);
         }
+    }
+
+    /**
+     * Detects whether the input is base64-encoded or raw JSON,
+     * and returns the decoded JSON string.
+     */
+    private String decodeCredentials(String input) {
+        if (input.startsWith("{")) {
+            // Already raw JSON
+            return input;
+        }
+        // Assume base64-encoded
+        return new String(Base64.getDecoder().decode(input), StandardCharsets.UTF_8);
     }
 }
