@@ -5,23 +5,34 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-@Configuration // 👈 Ubah dari @Component ke @Configuration
+@Configuration
 public class FirebaseConfig {
+
+    @Value("${firebase.service-account-file:#{null}}")
+    private String firebaseJson;
 
     @PostConstruct
     public void initialize() {
-        // 👈 Gunakan try-with-resources agar InputStream otomatis ditutup
-        try (InputStream serviceAccount = new ClassPathResource("firebase/firebase-credentials.json").getInputStream()) {
+        try {
+            InputStream serviceAccount;
+            if (firebaseJson != null && !firebaseJson.isBlank()) {
+                serviceAccount = new ByteArrayInputStream(firebaseJson.getBytes(StandardCharsets.UTF_8));
+            } else {
+                serviceAccount = new ClassPathResource("firebase/firebase-credentials.json").getInputStream();
+            }
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setHttpTransport(new NetHttpTransport()) // 👈 Tambahkan ini untuk cegah error GZIP/Transport
+                    .setHttpTransport(new NetHttpTransport()) 
                     .setConnectTimeout(30000)
                     .setReadTimeout(30000)
                     .build();
