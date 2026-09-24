@@ -38,6 +38,11 @@ public class PlafondServiceImpl implements PlafondService {
             plafond = plafondRepository.save(plafond);
         }
 
+        if (plafond.getInterestRate() == null || plafond.getInterestRate().compareTo(new BigDecimal("1.0")) != 0) {
+            plafond.setInterestRate(new BigDecimal("1.0"));
+            plafond = plafondRepository.save(plafond);
+        }
+
         BigDecimal availableAmount = plafond.getPlafondAmount().subtract(plafond.getUsedAmount());
         if (availableAmount.compareTo(BigDecimal.ZERO) < 0) {
             availableAmount = BigDecimal.ZERO;
@@ -62,7 +67,7 @@ public class PlafondServiceImpl implements PlafondService {
         plafond.setCustomer(customer);
         plafond.setPlafondAmount(tier.getMaxCap());
         plafond.setUsedAmount(BigDecimal.ZERO);
-        plafond.setInterestRate(new BigDecimal("0.1"));
+        plafond.setInterestRate(new BigDecimal("1.0"));
         plafond.setMaxTenorMonths(24);
         plafond.setStatus("ACTIVE");
 

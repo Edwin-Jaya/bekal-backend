@@ -127,13 +127,12 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new IllegalArgumentException("Tenor melebihi batas maksimum produk plafond (" + plafond.getMaxTenorMonths() + " bulan)");
         }
 
-        // Kalkulasi Bunga dan Angsuran Bulanan
-        BigDecimal interestRate = plafond.getInterestRate();
+        // Kalkulasi Bunga dan Angsuran Bulanan (1% per bulan flat)
+        BigDecimal interestRate = plafond.getInterestRate() != null ? plafond.getInterestRate() : new BigDecimal("1.0");
         BigDecimal totalInterest = request.getAmountRequested()
                 .multiply(interestRate)
                 .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(request.getTenorMonths()))
-                .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+                .multiply(BigDecimal.valueOf(request.getTenorMonths()));
 
         BigDecimal totalRepayment = request.getAmountRequested()
                 .add(totalInterest)

@@ -296,7 +296,7 @@ class LoanApplicationServiceImplTest {
             plafond.setPlafondAmount(new BigDecimal("500000000"));
             plafond.setUsedAmount(new BigDecimal("100000000"));
             plafond.setMaxTenorMonths(24);
-            plafond.setInterestRate(new BigDecimal("12.00")); // 12% per annum
+            plafond.setInterestRate(new BigDecimal("1.00")); // 1% per month
 
             Branch branch = new Branch();
             branch.setId(request.getBranch().getId());
@@ -317,7 +317,7 @@ class LoanApplicationServiceImplTest {
             assertThat(response.getAmountRequested()).isEqualTo(new BigDecimal("10000000"));
             assertThat(response.getTenorMonths()).isEqualTo(12);
             assertThat(response.getPurpose()).isEqualTo("Modal Usaha");
-            assertThat(response.getInterestRate()).isEqualTo(new BigDecimal("12.00"));
+            assertThat(response.getInterestRate()).isEqualTo(new BigDecimal("1.00"));
             assertThat(response.getStatus()).isEqualTo(LoanStatus.IN_REVIEW.getValue());
             assertThat(response.getApplicationNumber()).startsWith("APP-");
 
