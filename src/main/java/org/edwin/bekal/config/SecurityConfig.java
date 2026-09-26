@@ -83,7 +83,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/scalar/**",
                                 "/scalar",
-                                "/docs/**"
+                                "/docs/**",
+                                "/favicon.ico",
+                                "/favicon.svg"
                         ).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/customers/login", "/api/v1/customers/register", "/api/v1/customers/check").permitAll()
