@@ -75,6 +75,16 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/scalar/**",
+                                "/scalar",
+                                "/docs/**"
+                        ).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/customers/login", "/api/v1/customers/register", "/api/v1/customers/check").permitAll()
                         .requestMatchers("/api/v1/internal-user/**", "/api/v1/internal-user").authenticated()

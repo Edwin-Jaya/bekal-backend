@@ -1,6 +1,11 @@
 package org.edwin.bekal.domain.master.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.edwin.bekal.config.OpenApiConfig;
 import org.edwin.bekal.domain.master.dto.UserMenuResponse;
 import org.edwin.bekal.domain.master.service.DynamicMenuService;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +19,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/me")
 @RequiredArgsConstructor
+@Tag(name = "Current User (Me)", description = "Endpoints for the currently authenticated user to retrieve assigned menus and user context")
+@SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class MeController {
 
     private final DynamicMenuService dynamicMenuService;
 
+    @Operation(summary = "Get My Accessible Menus", description = "Retrieves hierarchical menu navigation tree accessible by the current user based on their roles.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Menus retrieved successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - invalid token")
+    })
     @GetMapping("/menus")
     public ResponseEntity<List<UserMenuResponse>> getMyMenus(Authentication authentication) {
-        // ID/Role diambil langsung dari konteks Spring Security yang aman
         return ResponseEntity.ok(dynamicMenuService.getMenusForCurrentUser(authentication));
     }
 }
