@@ -38,6 +38,7 @@ public class LoanReviewDetailMapper {
                 .customerJobTitle(e.getCustomerJobTitle())
                 .customerDeclaredIncome(e.getCustomerDeclaredIncome())
                 .customerVerifiedIncome(e.getCustomerVerifiedIncome())
+                .customerOtherIncome(e.getCustomerOtherIncome())
                 .build();
     }
 
