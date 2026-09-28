@@ -15,6 +15,11 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> exceptionHandler(Exception e) {
+        return build(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> illegalArgument(IllegalArgumentException e) {
         return build(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -25,7 +30,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     unauthorizedException(
             UnauthorizedException e
     ) {
-
         return build(
                 HttpStatus.UNAUTHORIZED,
                 e.getMessage()
