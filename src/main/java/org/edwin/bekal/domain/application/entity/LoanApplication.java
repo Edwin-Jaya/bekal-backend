@@ -62,7 +62,6 @@ public class LoanApplication extends BaseAuditEntity {
     @Column(name = "total_repayment", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalRepayment;
 
-    @Size(max = 20)
     @NotNull
     @ColumnDefault("'in_review'")
     @Column(name = "status", nullable = false, length = 20)

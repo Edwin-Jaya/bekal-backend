@@ -46,7 +46,7 @@ public class BankAccount extends BaseFullEntity {
     @Column(name = "is_primary", nullable = false)
     private Boolean isPrimary;
 
-    @Size(max = 20)
+
     @NotNull
     @Nationalized
     @ColumnDefault("'active'")

@@ -64,7 +64,6 @@ public class LoanApplicationResponse implements Serializable {
 
     @NotNull
 
-    @Size(max = 20)
 
     String status;
     InternalUserResponse assignedMarketing;

@@ -42,7 +42,6 @@ public class Plafond extends BaseEntity {
     @Column(name = "max_tenor_months", nullable = false)
     private Integer maxTenorMonths;
 
-    @Size(max = 20)
     @NotNull
     @ColumnDefault("'active'")
     @Column(name = "status", nullable = false, length = 20)
