@@ -2,7 +2,6 @@ package org.edwin.bekal.domain.application.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.edwin.bekal.common.base.BaseEntity;
 import org.edwin.bekal.domain.master.entity.InternalUser;
@@ -34,7 +33,6 @@ public class LoanApproval extends BaseEntity {
     @JoinColumn(name = "approved_by", nullable = false)
     private InternalUser approvedBy;
 
-    @Size(max = 20)
     @NotNull
     @Column(name = "result", nullable = false)
     @Enumerated(EnumType.STRING)
