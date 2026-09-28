@@ -25,6 +25,7 @@ import org.edwin.bekal.domain.master.entity.InternalUser;
 import org.edwin.bekal.domain.master.repository.BankAccountRepository;
 import org.edwin.bekal.domain.master.repository.InternalUserRepository;
 import org.edwin.bekal.enums.DisburseResult;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -93,6 +94,7 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "customerLoanHistory", allEntries = true)
     public LoanDisbursementResponse submitDisbursement(SubmitDisbursementRequest request, UUID reviewerUserId) {
         // 1. Cari Loan Application
         LoanApplication loanApplication = loanApplicationRepository.findById(request.getLoanApplicationId())

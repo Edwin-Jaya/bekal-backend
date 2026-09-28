@@ -20,6 +20,7 @@ import org.edwin.bekal.domain.customer.repository.EmploymentRepository;
 import org.edwin.bekal.domain.master.entity.InternalUser;
 import org.edwin.bekal.domain.master.repository.InternalUserRepository;
 import org.edwin.bekal.enums.ApprovalResult;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,6 +78,7 @@ public class LoanApprovalServiceImpl implements LoanApprovalService{
 
     @Override
     @Transactional
+    @CacheEvict(value = "customerLoanHistory", allEntries = true)
     public LoanApprovalResponse submitApproval(SubmitReviewRequest request, UUID reviewerUserId) {
         // 1. Cari Loan Application
         LoanApplication loanApplication = loanApplicationRepository.findById(request.getLoanApplicationId())
