@@ -20,7 +20,7 @@ public class SubmitReviewRequest {
     @NotNull(message = "Loan Application ID is required")
     private UUID loanApplicationId;
 
-    @NotNull(message = "Internal User ID is required")
+//    @NotNull(message = "Internal User ID is required")
     private UUID internalUserId;
     
     private BigDecimal verifiedIncome;
