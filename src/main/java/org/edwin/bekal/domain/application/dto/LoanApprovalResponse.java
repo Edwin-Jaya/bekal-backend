@@ -1,10 +1,8 @@
 package org.edwin.bekal.domain.application.dto;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Value;
 import org.edwin.bekal.domain.application.entity.LoanApplication;
 import org.edwin.bekal.domain.master.entity.InternalUser;
 
@@ -22,7 +20,6 @@ public class LoanApprovalResponse implements Serializable {
     @NotNull
     InternalUser approvedBy;
     @NotNull
-    @Size(max = 20)
     String result;
     BigDecimal approvedAmount;
     String notes;
