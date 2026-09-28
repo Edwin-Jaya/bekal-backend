@@ -44,6 +44,7 @@ public class LoanReviewDetailServiceImpl implements LoanReviewDetailService {
     private final EmploymentRepository employmentRepository;
     private final DocumentRepository documentRepository;
     private final LoanReviewRepository loanReviewRepository;
+    private final PushNotificationServiceImpl pushNotificationService;
     private final LoanReviewDetailMapper mapper;
 
     public LoanReviewDetail getDetail(UUID loanApplicationId) {
@@ -112,8 +113,18 @@ public class LoanReviewDetailServiceImpl implements LoanReviewDetailService {
 
         if ("approved".equalsIgnoreCase(result)) {
             loanApplication.setStatus("in_approval");
+            pushNotificationService.sendToCustomer(
+                    loanApplication.getCustomer().getId(),
+                    "Pinjaman Telah Masuk Ke Approval!",
+                    "Sebentar Lagi, Uang Akan Diterima 🔥."
+            );
         } else if ("rejected".equalsIgnoreCase(result)) {
             loanApplication.setStatus("review_rejected");
+            pushNotificationService.sendToCustomer(
+                    loanApplication.getCustomer().getId(),
+                    "Maaf Pinjaman Ditolak!",
+                    "Pinjaman telah ditolak."
+            );
         } else {
             throw new IllegalArgumentException("Invalid review result: " + result);
         }

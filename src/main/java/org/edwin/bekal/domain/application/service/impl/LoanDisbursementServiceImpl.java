@@ -131,16 +131,6 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
         // 6. Save ke Database
         LoanDisbursement savedDisbursement = loanDisbursementRepository.save(loanDisbursement);
 
-        // 7. Update status pada LoanApplication (Opsional)
-        if (disburseStatus == DisburseResult.SUCCESS) {
-            loanApplication.setStatus("DISBURSED");
-            loanApplicationRepository.save(loanApplication);
-        }
-        if (disburseStatus == DisburseResult.FAILED) {
-            loanApplication.setStatus("CANCELLED");
-            loanApplicationRepository.save(loanApplication);
-        }
-
         // ⬇️ Trigger notifikasi setelah status resmi berubah
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("id", "ID"));
         symbols.setGroupingSeparator('.');
@@ -150,11 +140,25 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
 
         String formattedAmount = rupiahFormat.format(loanDisbursement.getDisbursementAmount());
 
-        pushNotificationService.sendToCustomer(
-                customerId,
-                "Dana Kamu Sudah Cair! 🎉",
-                "Pinjaman senilai " + formattedAmount + " telah berhasil ditransfer ke rekening kamu."
-        );
+        // 7. Update status pada LoanApplication (Opsional)
+        if (disburseStatus == DisburseResult.SUCCESS) {
+            loanApplication.setStatus("DISBURSED");
+            loanApplicationRepository.save(loanApplication);
+            pushNotificationService.sendToCustomer(
+                    customerId,
+                    "Dana Kamu Sudah Cair! 🎉",
+                    "Pinjaman senilai " + formattedAmount + " telah berhasil ditransfer ke rekening kamu."
+            );
+        }
+        if (disburseStatus == DisburseResult.FAILED) {
+            loanApplication.setStatus("CANCELLED");
+            loanApplicationRepository.save(loanApplication);
+            pushNotificationService.sendToCustomer(
+                    customerId,
+                    "Maaf Pinjaman Ditolak!",
+                    "Pinjaman telah ditolak."
+            );
+        }
 
         return mapper.toLoanDisbursementResponse(savedDisbursement);
     }

@@ -42,6 +42,7 @@ public class LoanApprovalServiceImpl implements LoanApprovalService{
     private final InternalUserRepository internalUserRepository;
     private final LoanReviewDetailMapper mapper;
     private final LoanApprovalRepository loanApprovalRepository;
+    private final PushNotificationServiceImpl pushNotificationService;
 
     @Override
     @Transactional
@@ -111,8 +112,18 @@ public class LoanApprovalServiceImpl implements LoanApprovalService{
 
         if ("approved".equalsIgnoreCase(result)) {
             loanApplication.setStatus("in_disbursement");
+            pushNotificationService.sendToCustomer(
+                    loanApplication.getCustomer().getId(),
+                    "Pinjaman Telah Masuk Ke Pencairan!",
+                    "Sebentar Lagi, Uang Akan Diterima 🔥."
+            );
         } else if ("rejected".equalsIgnoreCase(result)) {
             loanApplication.setStatus("approval_rejected");
+            pushNotificationService.sendToCustomer(
+                    loanApplication.getCustomer().getId(),
+                    "Maaf Pinjaman Ditolak!",
+                    "Pinjaman telah ditolak."
+            );
         } else {
             throw new IllegalArgumentException("Invalid review result: " + result);
         }
