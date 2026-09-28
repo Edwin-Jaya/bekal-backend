@@ -1,7 +1,6 @@
 package org.edwin.bekal.domain.application.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.edwin.bekal.common.util.LoanReviewDetailMapper;

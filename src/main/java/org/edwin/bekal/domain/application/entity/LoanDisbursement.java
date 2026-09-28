@@ -5,11 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.edwin.bekal.common.base.BaseAuditEntity;
-import org.edwin.bekal.domain.customer.entity.Customer;
 import org.edwin.bekal.domain.master.entity.BankAccount;
 import org.edwin.bekal.domain.master.entity.InternalUser;
 import org.edwin.bekal.enums.DisburseResult;
-import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -48,7 +46,6 @@ public class LoanDisbursement extends BaseAuditEntity {
     @Column(name = "reference_number", length = 50)
     private String referenceNumber;
 
-    @Size(max = 20)
     @NotNull
     @Column(name = "status", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
