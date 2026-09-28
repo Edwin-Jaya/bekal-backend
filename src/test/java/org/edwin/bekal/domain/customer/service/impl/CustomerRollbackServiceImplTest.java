@@ -59,18 +59,20 @@ class CustomerRollbackServiceImplTest {
         }
 
         @Test
-        @DisplayName("Should cancel rollback if customer status is already ACTIVE")
-        void rollback_customerVerified_cancelsRollback() {
+        @DisplayName("Should proceed with rollback even if customer status is ACTIVE")
+        void rollback_customerActive_proceedsRollback() {
             UUID customerId = UUID.randomUUID();
             Customer customer = new Customer();
             customer.setCustomerStatus(CustomerStatus.ACTIVE);
 
             given(customerRepository.findById(customerId)).willReturn(Optional.of(customer));
+            given(documentRepository.findByCustomerIdAndIsLatestTrue(customerId)).willReturn(List.of());
+            given(employmentRepository.findByCustomer_Id(customerId)).willReturn(Optional.empty());
 
             customerRollbackService.rollbackIncompleteRegistration(customerId);
 
-            verify(documentRepository, never()).findByCustomerIdAndIsLatestTrue(any());
-            verify(customerRepository, never()).delete(any());
+            verify(documentRepository).findByCustomerIdAndIsLatestTrue(customerId);
+            verify(customerRepository).delete(customer);
         }
 
         @Test
@@ -78,7 +80,7 @@ class CustomerRollbackServiceImplTest {
         void rollback_success() {
             UUID customerId = UUID.randomUUID();
             Customer customer = new Customer();
-            customer.setCustomerStatus(CustomerStatus.INACTIVE); // Status belum/tidak ACTIVE
+            customer.setCustomerStatus(CustomerStatus.ACTIVE);
 
             Document doc1 = new Document();
             doc1.setFileUrl("file1.png");

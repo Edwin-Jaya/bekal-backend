@@ -88,7 +88,7 @@ public class SecurityConfig {
                                 "/favicon.svg"
                         ).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/customers/login", "/api/v1/customers/register", "/api/v1/customers/check").permitAll()
+                        .requestMatchers("/api/v1/customers/login", "/api/v1/customers/register", "/api/v1/customers/check", "/api/v1/customers/*/rollback").permitAll()
                         .requestMatchers("/api/v1/internal-user/**", "/api/v1/internal-user").authenticated()
                         .requestMatchers("/api/v1/customers/login").permitAll()
                         .requestMatchers("/api/v1/bank-accounts/**").permitAll()

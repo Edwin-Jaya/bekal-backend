@@ -35,12 +35,8 @@ public class CustomerRollbackServiceImpl implements CustomerRollbackService {
             return;
         }
 
-        // Cek jika status customer sudah VERIFIED / ACTIVE (batalkan rollback)
-        if (CustomerStatus.ACTIVE.equals(customer.getCustomerStatus())) {
-            log.info("Rollback dibatalkan karena customerId={} sudah terverifikasi (status={})",
-                    customerId, customer.getCustomerStatus());
-            return;
-        }
+        // Catatan: Pelanggan yang baru registrasi berstatus ACTIVE, sehingga rollback tetap dieksekusi
+        // untuk membersihkan data pendaftaran yang belum tuntas.
 
         List<Document> documents = documentRepository.findByCustomerIdAndIsLatestTrue(customerId);
         for (Document doc : documents) {

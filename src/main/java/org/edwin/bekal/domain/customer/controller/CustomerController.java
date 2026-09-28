@@ -12,6 +12,7 @@ import org.edwin.bekal.config.OpenApiConfig;
 import org.edwin.bekal.domain.auth.dto.JwtResponse;
 import org.edwin.bekal.domain.auth.dto.UserCheckResponse;
 import org.edwin.bekal.domain.customer.dto.*;
+import org.edwin.bekal.domain.customer.service.CustomerRollbackService;
 import org.edwin.bekal.domain.customer.service.CustomerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CustomerRollbackService customerRollbackService;
 
     @Operation(summary = "Check Customer Existence", description = "Checks whether a customer account with the specified email already exists.")
     @ApiResponses(value = {
@@ -150,5 +152,21 @@ public class CustomerController {
         CustomerResponse response = customerService.registerCustomer(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Customer Registered Successfully", response));
+    }
+
+    @Operation(
+            summary = "Rollback Incomplete Registration",
+            description = "Deletes incomplete customer registration data, including documents and employment records."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Registration rollback successful")
+    })
+    @DeleteMapping("/{id}/rollback")
+    public ResponseEntity<ApiResponse<Void>> rollbackRegistration(
+            @Parameter(description = "Customer UUID to rollback", example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable UUID id
+    ) {
+        customerRollbackService.rollbackIncompleteRegistration(id);
+        return ResponseEntity.ok(ApiResponse.success("Registration rollback completed successfully", null));
     }
 }
